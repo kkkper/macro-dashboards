@@ -1,0 +1,28 @@
+# Secrets — never commit keys or tokens
+.env
+.env.*
+!.env.example
+*api_key*
+*secret*
+*.pem
+*.key
+credentials*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node / tooling
+node_modules/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs / scratch
+*.log
+tmp/

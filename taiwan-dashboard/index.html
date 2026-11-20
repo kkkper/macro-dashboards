@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>台股總經儀表板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#f3f4f2; --surface:#ffffff; --surface2:#eceee9; --ink:#182420; --ink2:#43514a; --muted:#71807a;
+  --line:#d9ded6; --accent:#0b6e4f; --accent-ink:#ffffff; --amber:#9a6a12; --amber-bg:#faf1da;
+  --red:#b3372f; --chip:#e7ece8; --focus:#0b6e4f; --dash:#b9c2b8;
+  color-scheme:light;
+}
+html[data-theme="dark"]{
+  --bg:#101613; --surface:#171d1a; --surface2:#1f2723; --ink:#e8ede9; --ink2:#b9c4bc; --muted:#8b9a90;
+  --line:#2c362f; --accent:#3ecf9b; --accent-ink:#0b1512; --amber:#e0b45c; --amber-bg:#2b2413;
+  --red:#e08a84; --chip:#232c27; --focus:#3ecf9b; --dash:#3d4a41;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:16px;line-height:1.65;-webkit-text-size-adjust:100%}
+a{color:var(--accent);text-underline-offset:3px;overflow-wrap:anywhere}
+button,[role="button"],select,summary{min-height:2.25rem}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 56px}
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:10px 16px 0}
+.title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:"Noto Serif TC",serif;font-size:clamp(22px,4.5vw,32px);font-weight:900;margin:0;line-height:1.25;letter-spacing:.01em}
+.subtitle{margin:2px 0 0;color:var(--ink2);font-size:14px}
+.theme-btn{flex:none;display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;min-height:2.5rem}
+.theme-btn:hover{border-color:var(--accent)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px 0 10px}
+@media(min-width:760px){.tabs{grid-template-columns:repeat(6,1fr)}}
+.tab{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:10px;padding:9px 4px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;min-height:2.75rem}
+.tab:hover{color:var(--ink);border-color:var(--accent)}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tab .tab-no{display:block;font-size:11px;font-weight:500;opacity:.75;letter-spacing:.08em}
+section.panel{display:none;padding-top:20px}
+section.panel.active{display:block}
+h2.sec{font-size:20px;font-weight:900;margin:26px 0 4px;line-height:1.35}
+h2.sec:first-child{margin-top:2px}
+.sec-note{color:var(--ink2);font-size:14px;margin:0 0 14px;max-width:70ch}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--chip);color:var(--ink2);border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.chip.warn{background:var(--amber-bg);color:var(--amber)}
+.chip.ok{color:var(--accent)}
+.chip.bad{color:var(--red)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.notice{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:14px 16px;margin:18px 0 4px}
+.notice strong{color:var(--accent)}
+.notice p{margin:4px 0 0;font-size:14.5px;color:var(--ink2)}
+.grid{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:640px){.grid.kpi{grid-template-columns:repeat(2,1fr)} .grid.two{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.grid.kpi{grid-template-columns:repeat(4,1fr)} .grid.cards{grid-template-columns:repeat(2,1fr)} .grid.quad{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:640px){.grid.cards{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:640px){.grid.quad{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .k-label{font-size:13.5px;font-weight:700;color:var(--ink2);margin:0}
+.kpi .k-value{font-size:26px;font-weight:900;margin:4px 0 0;font-variant-numeric:tabular-nums}
+.kpi .k-value .unit{font-size:14px;font-weight:500;color:var(--muted)}
+.kpi .k-sub{font-size:13px;color:var(--muted);margin:2px 0 0}
+.na{color:var(--muted);font-weight:700}
+.down{color:var(--accent)} .up{color:var(--red)}
+.quad-card,.card,.event-card,.cal-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.quad-card h3{margin:0 0 2px;font-size:17px;font-weight:900}
+.quad-verdict{font-size:15px;font-weight:900;color:var(--amber)}
+.quad-verdict.weak{color:var(--accent)} .quad-verdict.strong{color:var(--red)}
+.quad-card ul{margin:8px 0 0;padding-left:20px;font-size:14px;color:var(--ink2)}
+.quad-card .q-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.prose{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.prose h3{margin:0 0 6px;font-size:16.5px;font-weight:900}
+.prose p{margin:0;color:var(--ink2);font-size:15px}
+.prose + .prose{margin-top:12px}
+.card h3{margin:0;font-size:17px;font-weight:900;line-height:1.4}
+.card .c-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card .c-no{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em}
+.big-value{font-size:30px;font-weight:900;margin:10px 0 0;font-variant-numeric:tabular-nums}
+.big-value .unit{font-size:15px;font-weight:500;color:var(--muted);margin-left:4px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:12px 0 0;font-size:13.5px}
+.meta dt{color:var(--muted);font-weight:500}
+.meta dd{margin:0;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.chart-ph{margin-top:14px;border:1.5px dashed var(--dash);border-radius:10px;padding:18px 14px;text-align:center;color:var(--muted);font-size:13.5px;background:var(--surface2)}
+.spark{margin-top:14px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.spark svg{width:100%;height:56px;display:block}
+.spark .s-cap{font-size:12px;color:var(--muted);margin:6px 0 0}
+.interp{margin:12px 0 0;font-size:14.5px;color:var(--ink2)}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);padding:4px 0}
+details p,details li{font-size:13.5px;color:var(--ink2)}
+details ul{padding-left:20px;margin:6px 0}
+.kv{font-size:13px;color:var(--ink2);margin:8px 0 0;word-break:break-all}
+.kv code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px}
+.countdown{background:var(--ink);color:var(--bg);border-radius:14px;padding:20px}
+html[data-theme="dark"] .countdown{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.countdown .cd-label{font-size:13.5px;font-weight:700;opacity:.85;margin:0}
+.countdown .cd-event{font-size:20px;font-weight:900;margin:2px 0 0}
+.countdown .cd-time{font-size:clamp(30px,7vw,44px);font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 0;line-height:1.15}
+.countdown .cd-when{font-size:14px;opacity:.85;margin:2px 0 0}
+.event-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.event-row:last-child{border-bottom:none}
+.event-date{flex:none;width:86px;font-weight:900;font-variant-numeric:tabular-nums;font-size:14px}
+.event-row p{margin:0;font-size:14.5px}
+.event-row .e-sub{color:var(--muted);font-size:13px}
+.vrow{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 16px}
+.vrow + .vrow{margin-top:10px}
+.vrow h3{margin:0;font-size:15.5px;font-weight:900}
+.vrow .v-meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.vrow p{margin:6px 0 0;font-size:13.5px;color:var(--ink2)}
+.vrow .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
+footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13px}
+footer p{margin:4px 0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="title-row">
+      <div>
+        <h1>台股總經 × 資金流 × 產業景氣</h1>
+        <p class="subtitle">指數與估值 · 資金與避險部位 · 出口與半導體基本面 · 台灣總經與國際利率 — 規格 v1.0（2026-11-17）</p>
+      </div>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="切換深淺色模式"><span id="themeIcon" aria-hidden="true">◐</span><span id="themeLabel">跟隨系統</span></button>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="儀表板分頁" id="tablist">
+      <button class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" data-tab="overview" type="button"><span class="tab-no">01</span>概覽</button>
+      <button class="tab" role="tab" id="tab-market" aria-controls="panel-market" aria-selected="false" tabindex="-1" data-tab="market" type="button"><span class="tab-no">02</span>行情 · 估值</button>
+      <button class="tab" role="tab" id="tab-flow" aria-controls="panel-flow" aria-selected="false" tabindex="-1" data-tab="flow" type="button"><span class="tab-no">03</span>資金 · 籌碼</button>
+      <button class="tab" role="tab" id="tab-industry" aria-controls="panel-industry" aria-selected="false" tabindex="-1" data-tab="industry" type="button"><span class="tab-no">04</span>出口 · 產業</button>
+      <button class="tab" role="tab" id="tab-macro" aria-controls="panel-macro" aria-selected="false" tabindex="-1" data-tab="macro" type="button"><span class="tab-no">05</span>總經 · 國際</button>
+      <button class="tab" role="tab" id="tab-calendar" aria-controls="panel-calendar" aria-selected="false" tabindex="-1" data-tab="calendar" type="button"><span class="tab-no">06</span>日曆</button>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ 概覽 ============ -->
+  <section class="panel active" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+    <div class="notice" role="note">
+      <strong>階段 3 已接入真實資料快照（抓取時間：2026-11-20 上午，Asia/Taipei）。</strong>
+      <p>本頁為靜態快照：數值於建置時自官方來源逐項抓取、正規化後寫入，觀測日多為 2026-11-19（最近交易日）。已接入 14／27 張卡；其餘因端點未驗證或檔案解析未完成，誠實保留「暫無資料」，不以推測值補齊。階段 4 自動排程尚未啟用——頁面不會自行更新，下一次更新需重新建置或經你確認後啟用排程。</p>
+    </div>
+
+    <h2 class="sec">八項關鍵指標</h2>
+    <p class="sec-note">概覽只放最關鍵的八項；完整 27 張卡請至各專屬分頁。顏色慣例依台股：紅漲綠跌。</p>
+    <div class="grid kpi" id="kpiGrid"></div>
+
+    <h2 class="sec">四個獨立象限</h2>
+    <p class="sec-note">四軸分開判斷，不合成單一 0–100 分數，也不把「數據上漲」直接等於利多。每軸同時列出支持與相反證據，判斷基準日為 2026-11-19。</p>
+    <div class="grid quad" id="quadGrid"></div>
+
+    <h2 class="sec">目前狀態說明</h2>
+    <div class="prose">
+      <h3>市場狀態（觀測日 2026-11-19）</h3>
+      <p>加權指數收 38,426.89 點，單日 −4.40%，5 日 −10.83%、20 日 −18.04%，自 10 月下旬高點區快速回落。上漲家數占比僅 9.87%（上漲 132／下跌 1,205），屬全面性下跌而非權值股獨弱；但成交值 9,429.89 億元、量比 0.97，未見恐慌性放量。類股中金融保險（−2.14%）相對抗跌，半導體（−4.29%）與電子工業（−4.70%）跌幅居前。</p>
+    </div>
+    <div class="prose">
+      <h3>資金與產業</h3>
+      <p>外資現貨（上市）近 20 個交易日累計賣超 10,830.29 億元，台指期淨未平倉為 −99,219 口，避險與撤出壓力明確；但投信同期累計買超 3,304.71 億元持續承接，融資餘額單日大減 144,646 張顯示槓桿正在降溫。產業面，台積電 2026 年 10 月營收年增 +59.71%、鴻海 +45.73%，基本面動能仍強——惟出口與外銷訂單資料尚未接入，不能只憑企業營收樣本下全面結論。</p>
+    </div>
+    <div class="prose">
+      <h3>總經與估值壓力</h3>
+      <p>美國 10 年期實質殖利率（DFII10）於 2026-11-18 為 2.88%，近 20 個交易日 +11 bps，跨境估值壓力小幅上升但幅度溫和。USD/TWD 央行數列最新觀測停在 2026-10-30（32.478），檔案雖於 11-20 更新、數列本身尚未推進，本頁標記為 stale，不以舊值冒充最新匯率。台股官方市場估值分位仍待月報端點核實。</p>
+    </div>
+
+    <h2 class="sec">市場異常</h2>
+    <div class="prose">
+      <h3>2026-11-19：廣度與指數同步急跌</h3>
+      <p>單日跌幅 −4.40% 且上漲家數占比跌破 10%，為本快照期間最弱的一日；外資台指期淨空 −99,219 口亦處高檔。惟量比僅 0.97、未伴隨爆量，型態較接近趨勢性調節而非單日恐慌殺盤。異常門檻的正式定義仍需更長歷史序列校準，此處僅陳述可觀測事實。</p>
+    </div>
+
+    <h2 class="sec">最近事件</h2>
+    <p class="sec-note">僅列已由官方時間表逐筆確認的事件；未確認者顯示「暫無預告」，不依「每月固定某日」推算日期。</p>
+    <div class="card">
+      <div class="event-row">
+        <div class="event-date">11/20<br />16:00</div>
+        <div><p><strong>經濟部公布 10 月外銷訂單</strong> <span class="chip ok"><span class="dot"></span>已確認</span></p><p class="e-sub">2026-11-20（五）16:00，Asia/Taipei。來源：經濟部統計處官方發布日曆。距發布 <span data-countdown-inline>—</span>。</p></div>
+      </div>
+      <div class="event-row">
+        <div class="event-date">—</div>
+        <div><p><strong>財政部出口統計（主要貨品）</strong> <span class="chip warn">暫無預告</span></p><p class="e-sub">下一次發布時間尚未逐筆核實，不推算日期。</p></div>
+      </div>
+      <div class="event-row">
+        <div class="event-date">—</div>
+        <div><p><strong>國發會景氣燈號</strong> <span class="chip warn">暫無預告</span></p><p class="e-sub">下一次發布時間尚未逐筆核實，不推算日期。</p></div>
+      </div>
+      <div class="event-row">
+        <div class="event-date">—</div>
+        <div><p><strong>主計總處 CPI／GDP</strong> <span class="chip warn">暫無預告</span></p><p class="e-sub">下一次發布時間尚未逐筆核實，不推算日期。</p></div>
+      </div>
+      <div class="event-row">
+        <div class="event-date">—</div>
+        <div><p><strong>上市公司月營收申報期限</strong> <span class="chip">申報期限</span></p><p class="e-sub">通常為次月 10 日前（2026 會計年度起，保險業及具保險業子公司者部分可延至 15 日）。此為申報期限，不是統一發布時間，故不列為事件時刻。</p></div>
+      </div>
+    </div>
+
+    <h2 class="sec">資料來源驗證報告（階段 2 探針＋階段 3 接入）</h2>
+    <p class="sec-note">階段 3 於 2026-11-20 上午實際抓取並正規化。狀態說明：ok＝已接入本頁快照；stale＝來源可讀但內容落後；unverified＝端點或欄位尚未完成驗證；unavailable＝本環境不可用或解析未完成。探針通過只代表當下可連線，不保證長期穩定。</p>
+    <div id="verifyList"></div>
+  </section>
+
+  <!-- ============ 行情·估值 ============ -->
+  <section class="panel" id="panel-market" role="tabpanel" aria-labelledby="tab-market" tabindex="0" hidden>
+    <h2 class="sec">行情 · 估值</h2>
+    <p class="sec-note">卡片 1–6。市場與資金類主圖視窗為近 120 個交易日（可切換 24 個月）；目前歷史僅累積至已取得範圍，缺的期間不補造。月資料不插值成每日數字。</p>
+    <div class="grid cards" data-cards="market"></div>
+  </section>
+
+  <!-- ============ 資金·籌碼 ============ -->
+  <section class="panel" id="panel-flow" role="tabpanel" aria-labelledby="tab-flow" tabindex="0" hidden>
+    <h2 class="sec">資金 · 籌碼</h2>
+    <p class="sec-note">卡片 7–12。法人「金額」與「股數」不可混加；台指期淨口數是未平倉存量（多單 − 空單），單位為口，不是億元；P/C 的未平倉量比與成交量比分開呈現、不交叉比較。現貨法人目前僅含上市（TWSE）金額，上櫃端點待核實、未合併。</p>
+    <div class="grid cards" data-cards="flow"></div>
+  </section>
+
+  <!-- ============ 出口·產業 ============ -->
+  <section class="panel" id="panel-industry" role="tabpanel" aria-labelledby="tab-industry" tabindex="0" hidden>
+    <h2 class="sec">出口 · 產業</h2>
+    <p class="sec-note">卡片 13–19。電子零組件與資通產品年增率須取同一套財政部「主要貨品」原始分類、同一美元口徑；增速差單位為百分點（ppt）。外銷訂單是接單、不是已實現出口。財政部與國發會資料集的檔案下載／解析尚未完成，該組卡片維持「暫無資料」。</p>
+    <div class="grid cards" data-cards="industry"></div>
+  </section>
+
+  <!-- ============ 總經·國際 ============ -->
+  <section class="panel" id="panel-macro" role="tabpanel" aria-labelledby="tab-macro" tabindex="0" hidden>
+    <h2 class="sec">總經 · 國際</h2>
+    <p class="sec-note">卡片 20–27。景氣燈號是景氣熱絡程度的描述，紅燈不等於股市利空；GDP 季資料主圖為近 8 季；央行代碼未核實前不猜測、不接入。</p>
+    <div class="grid cards" data-cards="macro"></div>
+  </section>
+
+  <!-- ============ 日曆 ============ -->
+  <section class="panel" id="panel-calendar" role="tabpanel" aria-labelledby="tab-calendar" tabindex="0" hidden>
+    <h2 class="sec">發布日曆</h2>
+    <p class="sec-note">所有時間為 Asia/Taipei。倒數計時在切換分頁後仍持續計算。</p>
+    <div class="countdown" role="timer" aria-label="距離下一個已確認發布事件的倒數">
+      <p class="cd-label">下一個已確認事件</p>
+      <p class="cd-event">經濟部 · 10 月外銷訂單統計</p>
+      <p class="cd-time" id="cdTime">—</p>
+      <p class="cd-when">預定發布：2026-11-20（五）16:00 · 來源：經濟部統計處官方發布日曆（已逐筆確認）</p>
+    </div>
+
+    <h2 class="sec">已確認事件</h2>
+    <div class="card">
+      <div class="event-row">
+        <div class="event-date">11/20<br />16:00</div>
+        <div><p><strong>10 月外銷訂單</strong> — 經濟部統計處</p><p class="e-sub">對應卡片 18。發布後預定 +30／+90 分鐘檢查（排程尚未啟用，需使用者確認）。若官方延遲發布，將顯示「尚未發布」而非沿用舊值。</p></div>
+      </div>
+    </div>
+
+    <h2 class="sec">其餘指標的下一次發布</h2>
+    <p class="sec-note">以下指標的下一次官方發布時間尚未逐筆自官方時間表核實，一律顯示「暫無預告」。絕不以「每月固定 20 日」之類規律推算成確定日期。</p>
+    <div class="card" id="noForecastList"></div>
+
+    <h2 class="sec">規劃中的更新節奏（尚未啟用）</h2>
+    <div class="prose">
+      <h3>盤後三批 + 事件觸發</h3>
+      <p>規劃（待使用者確認後才執行）：交易日盤後 16:30 初抓、19:30 補抓、翌日 08:00 品質檢查——因各機構定稿時間不同，不把 13:35 的暫時資料當作全日最終版本。月資料改以官方日曆的精確事件時間觸發。每筆歷史保存 as_of_date、published_at、fetched_at 與 version；台股休市日以證交所休市表為準。目前本頁為 2026-11-20 上午的一次性快照。</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>本頁為規格 v1.0 的階段 3 交付：真實資料快照（抓取時間 2026-11-20 上午，Asia/Taipei；主要觀測日 2026-11-19）。靜態頁面不會自行更新；階段 4 排程未啟用。API 金鑰（如 FRED）絕不寫入頁面程式碼——DFII10 採 FRED 公開 CSV 取得。本頁內容為資料整理與觀察框架，非買賣建議。</p>
+    <p>資料查核基準：2026-11-17 規格文件；階段 2 探針：2026-11-18；階段 3 抓取：2026-11-20。民國日期換算例：1151119 ＝ 西元 2026-11-19。</p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+var NA = "暫無資料";
+var FETCHED = "2026-11-20 上午";
+var TAIEX_HIST = [46887.77,46041.43,46096.23,47035.58,46368.33,45211.83,44920.14,43307.54,42948.91,41574.72,39701.64,41661.70,42711.92,44257.15,43091.87,43675.12,41040.08,40092.11,40194.91,38426.89];
+var PC_HIST = [66.17,62.86,61.96,69.38,64.46,62.59,61.58,47.77,49.37,44.09,39.73,51.19,66.54,65.17,66.69,57.75,53.79,54.08,39.80,41.00];
+var DFII_HIST = [2.91,2.92,2.87,2.91,2.88,2.84,2.78,2.74,2.80,2.77,2.76,2.64,2.66,2.66,2.64,2.67,2.63,2.60,2.62,2.65,2.64,2.60,2.63,2.66,2.78,2.86,2.91,2.92,2.89,2.88];
+
+var CARDS = [
+ {id:"taiex",no:1,tab:"market",title:"加權指數 TAIEX",unit:"點",freq:"交易日",cmp:"DoD",win:"近 120 個交易日（可切換 24 個月）",src:"臺灣證券交易所 TWSE",url:"https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX",status:"ok",value:"38,426.89",prev:"40,194.91",delta:"-1,768.02（-4.40%）· 5 日 -10.83% · 20 日 -18.04%",obs:"2026-11-19",hist:TAIEX_HIST,histCap:"近 20 個交易日收盤（2026-10-21 至 11-19，FMTQIK）",interp:"大盤價格指數水位與 1／5／20 日報酬，是市場趨勢軸的核心輸入；基準為價格指數，不含股息再投資。20 日跌幅逾 18%，趨勢明顯轉弱。",meth:"取 MI_INDEX「發行量加權股價指數」收盤值；5／20 日報酬以 FMTQIK 歷史收盤計算（20 日前為 2026-10-21 的 46,887.77）。民國日期正規化為 ISO 日期另存。"},
+ {id:"tpex_index",no:2,tab:"market",title:"櫃買指數",unit:"點",freq:"交易日",cmp:"DoD",win:"近 120 個交易日（可切換 24 個月）",src:"櫃買中心 TPEx",url:"https://www.tpex.org.tw/openapi/",status:"unavailable",value:null,interp:"中小型股風險偏好的溫度計；與 TAIEX 的相對強弱可分辨行情是權值股獨強還是全面擴散。",meth:"櫃買「指數」專屬端點尚未完成驗證（上櫃個股行情端點不等於指數），驗證完成前不接入、不以其他來源替代。"},
+ {id:"turnover",no:3,tab:"market",title:"市場量能（上市成交值）",unit:"新台幣億元",freq:"交易日",cmp:"DoD",win:"近 120 個交易日（可切換 24 個月）",src:"臺灣證券交易所 TWSE",url:"https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK",status:"ok",value:"9,429.89",prev:"10,751.74",delta:"量比 0.97（20 日均值 9,685.11 億元）",obs:"2026-11-19",interp:"成交值相對 20 日平均的量比，判斷行情是否有量能支撐。急跌日量比僅 0.97，未見恐慌性放量。統計範圍為集中市場。",meth:"取 FMTQIK 的 TradeValue；20 日均值以 2026-10-21 至 11-19 共 20 個交易日計算（10 月資料取自證交所 FMTQIK 月查詢端點）。"},
+ {id:"breadth",no:4,tab:"market",title:"市場廣度（上漲家數占比）",unit:"%",freq:"交易日",cmp:"DoD",win:"近 120 個交易日（可切換 24 個月）",src:"臺灣證券交易所 TWSE",url:"https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",status:"ok",value:"9.87",prev:"—",delta:"上漲 132 · 下跌 1,205 · 持平 56",obs:"2026-11-19",interp:"上漲家數 ÷（上漲＋下跌家數）。9.87% 顯示跌勢全面擴散，並非少數權值股獨跌。",meth:"因 twtazu_od 內容停留在 2026-06-05（stale），改以 STOCK_DAY_ALL 全體上市證券（1,393 檔，含 ETF 等）之漲跌逐檔統計；口徑與 twtazu_od「整體市場」不完全相同，已在此註明。50 日擴散度待歷史建倉。"},
+ {id:"valuation",no:5,tab:"market",title:"台股估值（市場 PE／PB／殖利率）",unit:"倍 / %",freq:"日／月",cmp:"分位",win:"近 5 年分位",src:"臺灣證券交易所 TWSE（上市公司月報）",url:"https://openapi.twse.com.tw/",status:"unverified",value:null,interp:"官方市場整體本益比、淨值比與殖利率，相對自身 5 年分位判斷貴／便宜；不用個股 PE 簡單平均冒充市場估值。",meth:"市場整體估值的機器可讀端點尚未確認，列為待核實（CSV／月報解析）；BWIBBU_ALL 是個股資料，僅供對照、不可充當市場 PE。"},
+ {id:"sectors",no:6,tab:"market",title:"類股相對表現",unit:"點（半導體類指數）",freq:"交易日",cmp:"DoD",win:"近 120 個交易日",src:"臺灣證券交易所 TWSE",url:"https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX",status:"ok",value:"1,306.84",prev:"1,365.38",delta:"半導體 -4.29% · 電子工業 -4.70% · 金融保險 -2.14% · 未含電子 -3.32%（單日）",obs:"2026-11-19",interp:"官方類股指數單日表現：金融相對抗跌、電子族群跌幅居前。20 日類股報酬待歷史序列補齊後提供。",meth:"取 MI_INDEX 各類股指數收盤值與漲跌百分比；類股分類依證交所官方定義。前值為半導體類指數前一日收盤（由漲跌點數回推）。"},
+ {id:"foreign_spot",no:7,tab:"flow",title:"外資現貨買賣超（上市）",unit:"新台幣億元",freq:"交易日",cmp:"DoD",win:"近 120 個交易日；1／5／20 日累計",src:"臺灣證券交易所 TWSE（BFI82U）",url:"https://www.twse.com.tw/rwd/zh/fund/BFI82U?dayDate=20261119&response=json&type=day",status:"ok",value:"-243.12",prev:"-765.64",delta:"5 日累計 -1,803.22 億 · 20 日累計 -10,830.29 億",obs:"2026-11-19",interp:"外資在集中市場的淨賣出金額，20 日累計賣超逾兆元，撤出趨勢明確；賣超不必然等於次日下跌，須與期貨部位合看。上櫃部分因 TPEx 法人端點待核實，尚未合併。",meth:"上市用 BFI82U 金額口徑（外資及陸資，不含外資自營商）；T86 是個股股數，不可相加當金額。5／20 日累計由逐日 BFI82U 查詢加總（20 日窗口為 2026-10-21 至 11-19，10/23、10/26 無交易資料）。"},
+ {id:"trust_spot",no:8,tab:"flow",title:"投信現貨買賣超（上市）",unit:"新台幣億元",freq:"交易日",cmp:"DoD",win:"近 120 個交易日；連買／連賣天數",src:"臺灣證券交易所 TWSE（BFI82U）",url:"https://www.twse.com.tw/rwd/zh/fund/BFI82U?dayDate=20261119&response=json&type=day",status:"ok",value:"+43.90",prev:"+166.12",delta:"5 日累計 +84.18 億 · 20 日累計 +3,304.71 億",obs:"2026-11-19",interp:"投信 20 日累計買超逾 3,300 億元，與外資方向相反，是本波回檔的主要承接力量。",meth:"與外資同一 BFI82U 金額口徑分列呈現；累計窗口同卡片 7。連買／連賣天數待逐日序列整理後提供。"},
+ {id:"dealer_spot",no:9,tab:"flow",title:"自營商現貨買賣超（上市）",unit:"新台幣億元",freq:"交易日",cmp:"DoD",win:"近 120 個交易日",src:"臺灣證券交易所 TWSE（BFI82U）",url:"https://www.twse.com.tw/rwd/zh/fund/BFI82U?dayDate=20261119&response=json&type=day",status:"ok",value:"-18.63",prev:"+54.72",delta:"自行買賣 5 日 +174.13 億 · 避險 -214.40 億（單日）／5 日 -796.25 億",obs:"2026-11-19",interp:"主值為自營商「自行買賣」。避險部位（−214.40 億）多來自權證／ETF 造市，分列呈現、不視為看多或看空訊號。",meth:"依 BFI82U 的自營商（自行買賣）與自營商（避險）欄位分列，兩者不合併解讀。"},
+ {id:"foreign_tx",no:10,tab:"flow",title:"外資台指期淨未平倉",unit:"口",freq:"交易日",cmp:"DoD",win:"近 120 個交易日",src:"期交所 TAIFEX",url:"https://openapi.taifex.com.tw/v1/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",status:"ok",value:"-99,219",prev:"—",delta:"多單 12,664 口 · 空單 111,883 口",obs:"2026-11-19",interp:"TX 外資未平倉淨空近 10 萬口，避險／看空部位處高檔，是資金風險軸的關鍵證據。須留意契約換月期間口數的可比性。",meth:"來源為期交所「各期貨契約三大法人」日資料（/v1/），篩選契約「臺股期貨（TX）」＋「外資及陸資」，淨口數＝未平倉多單 − 空單（存量）；不用每日成交淨額代替。前一日值待逐日建倉後提供變化。"},
+ {id:"pc_ratio",no:11,tab:"flow",title:"台指選擇權 P/C 比",unit:"%（OI 比）",freq:"交易日",cmp:"分位",win:"近 120 個交易日；相對歷史分位",src:"期交所 TAIFEX",url:"https://openapi.taifex.com.tw/v1/PutCallRatio",status:"ok",value:"41.00",prev:"39.80",delta:"成交量比 73.38%（與 OI 比分開呈現）",obs:"2026-11-19",hist:PC_HIST,histCap:"近 20 個交易日 P/C 未平倉量比（%）",interp:"Put／Call 未平倉量比 41.00%，低於近月常見的 50–66% 區間，避險需求未見極端化；極端比率不保證明日反轉，僅作中性輔助。",meth:"路徑為 /v1/PutCallRatio。OI 比與成交量比永不交叉比較；歷史分位待 120 日序列建倉後計算。"},
+ {id:"margin",no:12,tab:"flow",title:"融資融券餘額（上市彙總）",unit:"張（融資餘額）",freq:"交易日",cmp:"DoD",win:"近 120 個交易日；20 日變化",src:"臺灣證券交易所 TWSE ＋ 櫃買中心 TPEx",url:"https://openapi.twse.com.tw/v1/exchangeReport/MI_MARGN",status:"ok",value:"8,947,619",prev:"9,092,265",delta:"單日 -144,646 張（-1.59%）· 融券 209,819 張（單日 +16,275 張）",obs:"2026-11-19",interp:"融資單日大減逾 14 萬張，散戶槓桿快速降溫，有助於降低追繳連鎖風險；20 日變化待逐日建倉。上櫃餘額尚未合併。借券與融券是不同制度，不混為一談。",meth:"MI_MARGN 為逐股資料，本卡為上市全體彙總（融資今日餘額合計），並註明彙總口徑；金額餘額需另有官方彙總來源，未以股價自行估算。"},
+ {id:"exports_total",no:13,tab:"industry",title:"總出口",unit:"億美元 / %（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"財政部（政府資料開放平臺）",url:"https://data.gov.tw/dataset/6053",status:"unavailable",value:null,interp:"海關出口美元金額與年增率，是台灣景氣最直接的外部需求指標。",meth:"資料集檔案（CSV）下載與欄位解析尚未完成，維持暫無資料；完成後須記錄資料日期、幣別、分類修訂與初步／正式值版本。月資料不插值成每日數字。"},
+ {id:"exports_elec",no:14,tab:"industry",title:"電子零組件出口",unit:"億美元 / %（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"財政部（政府資料開放平臺）",url:"https://data.gov.tw/dataset/8380",status:"unavailable",value:null,interp:"半導體景氣的核心貨品分類年增率，與資通產品同表、同美元口徑比較才有意義。",meth:"同卡片 13：財政部「主要貨品」檔案解析未完成前不接入，不以其他來源拼湊不同口徑。"},
+ {id:"exports_ict",no:15,tab:"industry",title:"資通與視聽產品出口",unit:"億美元 / %（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"財政部（政府資料開放平臺）",url:"https://data.gov.tw/dataset/8380",status:"unavailable",value:null,interp:"AI 伺服器與資通訊產品出口年增率，是近年出口成長的主要引擎，與電子零組件的消長值得對照。",meth:"與卡片 14 同一報表、同一口徑；貿易署／關務署匯率換算可能有極小差異，來源不混接。"},
+ {id:"exports_gap",no:16,tab:"industry",title:"出口增速差（資通 − 電子零組件）",unit:"百分點（ppt）",freq:"月",cmp:"ppt",win:"近 24 個月",src:"財政部（政府資料開放平臺）衍生計算",url:"https://data.gov.tw/dataset/8380",status:"unavailable",value:null,interp:"資通 YoY 減電子零組件 YoY，正值代表成長動能偏向資通產品、負值偏向半導體零組件；是百分點差，不是金額差。",meth:"公式：ICT_yoy − ElectronicComponents_yoy（ppt）。兩輸入皆未接入，本卡同步顯示暫無資料，不以單邊推算。"},
+ {id:"semi_equip",no:17,tab:"industry",title:"半導體設備進口",unit:"%（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"國發會（政府資料開放平臺）",url:"https://data.gov.tw/dataset/6099",status:"unavailable",value:null,interp:"半導體設備進口反映廠商資本支出意願，是景氣領先指標的構成項之一；須標明名目／實質與分類口徑。",meth:"資料集 6099 為 ZIP 格式，專屬解析器尚未完成；完成前不接入。"},
+ {id:"export_orders",no:18,tab:"industry",title:"外銷訂單",unit:"億美元 / %（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"經濟部統計處",url:"https://www.moea.gov.tw/mns/dos/content/contentlink.aspx?menu_id=9423",status:"unavailable",value:null,next:"2026-11-20 16:00",interp:"廠商接單金額與年增率，領先已實現出口；接單不等於出貨。10 月數據於今日（2026-11-20）16:00 發布，本快照抓取時尚未發布，故無值。",meth:"下一次已確認發布：2026-11-20 16:00（10 月數據）。其他月份逐筆讀官方日曆，不依固定日推算。發布後需重新抓取才會顯示數值。"},
+ {id:"key_revenue",no:19,tab:"industry",title:"重點企業月營收（台積電）",unit:"新台幣億元",freq:"月",cmp:"YoY",win:"近 24 個月；12 月累積同比",src:"臺灣證券交易所 TWSE",url:"https://openapi.twse.com.tw/v1/opendata/t187ap05_L",status:"ok",value:"5,868.90",prev:"5,118.57",delta:"YoY +59.71% · 1–10 月累計 YoY +43.29% · 鴻海 YoY +45.73% · 聯發科 +5.77%",obs:"統計期 2026-10",interp:"台積電 2026 年 10 月營收 5,868.90 億元、年增近六成，半導體龍頭動能強勁；鴻海、聯發科同月年增率一併列於變動欄對照。樣本是觀察窗口，不代表市場全貌。",meth:"取 t187ap05_L 資料年月 11510（2026-10）：台積電當月營收 586,890,319 千元、上月 511,857,399 千元、去年同月增減 +59.71%、累計增減 +43.29%。申報期限通常為次月 10 日前，是期限而非統一發布時刻。"},
+ {id:"ndc_light",no:20,tab:"macro",title:"景氣燈號",unit:"燈號 / 分",freq:"月",cmp:"MoM",win:"近 24 個月",src:"國發會（政府資料開放平臺）",url:"https://data.gov.tw/dataset/6099",status:"unavailable",value:null,interp:"國發會原始燈號與綜合判斷分數（含前值）。紅燈代表景氣熱絡，不等於股市利空——熱絡與過熱的風險要分開看。",meth:"資料集 6099 為 ZIP 格式，解析器尚未完成；完成前不接入、不以新聞報導數字替代官方原始值。"},
+ {id:"ndc_leading",no:21,tab:"macro",title:"景氣領先指標",unit:"指數",freq:"月",cmp:"MoM",win:"近 24 個月",src:"國發會（政府資料開放平臺）",url:"https://data.gov.tw/dataset/6099",status:"unavailable",value:null,interp:"領先指標不含趨勢指數的方向與連續變動期數，判斷景氣轉折的領先訊號；單月變動不下結論，看連續期數。",meth:"與燈號同一資料集（ZIP），同卡片 20 的接入狀態。"},
+ {id:"ind_production",no:22,tab:"macro",title:"工業生產指數",unit:"%（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"經濟部統計處",url:"https://www.moea.gov.tw/mns/dos/content/contentlink.aspx?menu_id=9423",status:"unavailable",value:null,interp:"工業生產年增率看製造業實際產出動能；須留意工作天數差異與低基期造成的年增率失真。",meth:"經濟部統計處發布管道（新聞稿／統計表）尚無已驗證的機器可讀端點，接入前須完成來源驗證，不以二手彙整數字替代。"},
+ {id:"gdp",no:23,tab:"macro",title:"實質 GDP 年增率",unit:"%（YoY）",freq:"季",cmp:"YoY",win:"近 8 季",src:"主計總處 DGBAS",url:"https://astatdb.dgbas.gov.tw/dgbasall/webMain.aspx?k=shortcut",status:"unverified",value:null,interp:"實質 GDP 年增率是總體成長的基準線；官方若另有季調年化數列才另列，兩種口徑不混用。",meth:"數列代碼、修正與季調口徑須先自總體統計資料庫 API 文件確認；無法確認時以官網 CSV／XLS 為備援，不猜 endpoint。"},
+ {id:"cpi",no:24,tab:"macro",title:"台灣 CPI",unit:"%（YoY / MoM）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"主計總處 DGBAS",url:"https://astatdb.dgbas.gov.tw/dgbasall/webMain.aspx?k=shortcut",status:"unverified",value:null,interp:"消費者物價年增率（與月增率，如有可比的官方季調數列），影響央行政策與實質購買力；卡片附原始統計日期。",meth:"同卡片 23：主計總處數列代碼待 API 文件確認，不猜 endpoint。"},
+ {id:"m1b",no:25,tab:"macro",title:"M1B 年增率",unit:"%（YoY）",freq:"月",cmp:"YoY",win:"近 24 個月",src:"中央銀行 CBC",url:"https://cpx.cbc.gov.tw/Data/ExportToAPIInfo",status:"unverified",value:null,interp:"M1B 年增率及相對 M2 的變化，看資金活絡程度與股市資金動能的背景；須標明統計定義。",meth:"央行 API 的 M1B／M2 項目代號須先自官方對照表核實——未核實前不猜代碼、不接入。"},
+ {id:"usdtwd",no:26,tab:"macro",title:"USD/TWD 新台幣匯率",unit:"TWD per USD",freq:"日",cmp:"DoD",win:"近 120 個交易日",src:"中央銀行 CBC（BP01D01）",url:"https://cpx.cbc.gov.tw/API/DataAPI/Get?FileName=BP01D01",status:"stale",value:"32.478",prev:"32.492",delta:"-0.014（台幣小幅升值）",obs:"2026-10-30",interp:"台幣兌美元匯率。數值上升代表台幣貶值、下降代表升值；方向解讀不直接等於股市利多或利空。注意：央行檔案雖於 2026-11-20 更新（prepared），本數列最新觀測仍停在 2026-10-30，故標記 stale。",meth:"BP01D01 為央行銀行間美元匯率日資料（16:00 即期），不等於即時市場 USD/TWD 報價，不同匯率來源不混接。檔案 prepared：2026-11-20 11:25；數列最後觀測：2026-10-30。"},
+ {id:"tips10y",no:27,tab:"macro",title:"美國 10 年期實質殖利率（TIPS）",unit:"%",freq:"交易日",cmp:"bps",win:"近 120 個交易日；20 日變動（bps）",src:"FRED（DFII10）",url:"https://fred.stlouisfed.org/series/DFII10",status:"ok",value:"2.88",prev:"2.89",delta:"單日 -1 bp · 20 交易日 +11 bps（2026-10-20：2.77%）",obs:"2026-11-18",hist:DFII_HIST,histCap:"近 30 個觀測日 DFII10（%）",interp:"美國 10 年期實質殖利率是台股估值的跨境折現率壓力來源。近 20 交易日 +11 bps，壓力小幅上升但幅度溫和；仍須與本地因素合看。",meth:"數列代號 DFII10，採 FRED 公開 fredgraph CSV 於建置時抓取（未使用 API 金鑰，金鑰絕不寫入頁面）。2026-11-11 為美國退伍軍人節無觀測值，序列以實際觀測日為準。"}
+];
+
+var KPIS = [
+ {label:"加權指數 TAIEX",value:"38,426.89",unit:"點",sub:"2026-11-19 · 單日 -4.40% · 20 日 -18.04% · TWSE"},
+ {label:"櫃買指數",value:null,unit:"點",sub:"指數端點未驗證 · 來源：TPEx"},
+ {label:"成交值／20 日均值（量比）",value:"0.97",unit:"倍",sub:"成交值 9,429.89 億／20 日均值 9,685.11 億 · 2026-11-19"},
+ {label:"上漲家數占比",value:"9.87",unit:"%",sub:"上漲 132／下跌 1,205 · 2026-11-19 · 上市全體證券"},
+ {label:"外資買賣超（上市）",value:"-243.12",unit:"億元",sub:"5 日累計 -1,803.22 億 · 2026-11-19 · TWSE BFI82U"},
+ {label:"外資台指期淨未平倉",value:"-99,219",unit:"口",sub:"TX 未平倉存量 · 2026-11-19 · TAIFEX"},
+ {label:"出口增速差（資通 − 電子零組件）",value:null,unit:"ppt",sub:"財政部檔案解析未完成 · 同一口徑"},
+ {label:"新台幣匯率 USD/TWD",value:"32.478",unit:"",sub:"央行數列最新觀測 2026-10-30（stale）· 上升＝台幣貶值"}
+];
+
+var QUADS = [
+ {name:"市場趨勢",verdict:"偏弱",cls:"weak",inputs:"指數 20 日變動 · 上漲家數占比 · 成交量比 · 櫃買相對強弱",
+  sup:["加權指數 20 日 -18.04%、5 日 -10.83%（2026-11-19）","上漲家數占比僅 9.87%，跌勢全面擴散"],
+  con:["量比 0.97，未伴隨恐慌性放量","金融保險類股 -2.14%，相對抗跌"]},
+ {name:"資金風險",verdict:"偏弱",cls:"weak",inputs:"外資現貨 5／20 日累計 · 台指期淨未平倉變化 · 融資 20 日變化 · P/C 歷史分位",
+  sup:["外資現貨（上市）20 日累計賣超 10,830.29 億元","外資台指期淨未平倉 -99,219 口，避險部位偏高"],
+  con:["投信 20 日累計買超 3,304.71 億元持續承接","融資單日 -144,646 張，槓桿降溫；P/C OI 比 41.00% 未極端化"]},
+ {name:"產業基本面",verdict:"偏強",cls:"strong",inputs:"出口三分類年增率 · 增速差 · 外銷訂單 · 工業生產 · 重點企業營收",
+  sup:["台積電 2026-10 營收 YoY +59.71%、累計 +43.29%","鴻海 2026-10 營收 YoY +45.73%"],
+  con:["出口、外銷訂單、工業生產尚未接入，證據僅來自企業營收樣本","聯發科 YoY +5.77%，族群內動能分化"]},
+ {name:"總經估值壓力",verdict:"中性",cls:"",inputs:"美 10 年實質利率 5／20 日變動 · USD/TWD · M1B 趨勢 · 台股估值分位",
+  sup:["DFII10 近 20 交易日 +11 bps，折現率壓力小幅上升（2026-11-18）"],
+  con:["單日 -1 bp 至 2.88%，變動幅度溫和","USD/TWD 數列 stale（止於 10-30）、估值分位與 M1B 未接入，證據不完整"]}
+];
+
+var VERIFY = [
+ {name:"TWSE · MI_INDEX（大盤與類股指數）",http:"200",ct:"application/json",size:"約 46 KB",lat:"實測可讀",last:"2026-11-19（1151119）",keys:"日期、指數、收盤指數、漲跌點數、漲跌百分比",verdict:"ok",note:"階段 3 已接入：TAIEX 38,426.89（-4.40%）與類股指數。僅最新一日，歷史以 FMTQIK 補足近月。"},
+ {name:"TWSE · FMTQIK（每日成交資訊）＋月查詢端點",http:"200",ct:"application/json",size:"—",lat:"實測可讀",last:"2026-11-19",keys:"Date、TradeVolume、TradeValue、Transaction、TAIEX、Change",verdict:"ok",note:"已接入：成交值、20 日均值與量比、TAIEX 5／20 日報酬。OpenAPI 版回傳當月；10 月歷史取自證交所 rwd FMTQIK 月查詢（date=20261001）。"},
+ {name:"TWSE · STOCK_DAY_ALL（上市個股日成交）",http:"200",ct:"application/json",size:"約 1,393 檔",lat:"實測可讀",last:"2026-11-19（1151119）",keys:"Date、Code、Change、ClosingPrice…",verdict:"ok",note:"已接入市場廣度：逐檔統計上漲 132／下跌 1,205／持平 56。含 ETF 等全體上市證券，口徑已註明於卡片 4。"},
+ {name:"TWSE · twtazu_od（漲跌證券數）",http:"200",ct:"application/json",size:"319 B",lat:"—",last:"2026-06-05（1150605）",keys:"出表日期、類型、上漲、下跌、持平、未成交",verdict:"stale",note:"內容仍停留在 2026-06-05，維持 stale；廣度改用 STOCK_DAY_ALL 衍生統計替代並註明口徑差異。"},
+ {name:"TWSE · BFI82U（三大法人買賣金額）",http:"200",ct:"application/json",size:"逐日查詢",lat:"實測可讀",last:"2026-11-19",keys:"單位名稱、買進金額、賣出金額、買賣差額",verdict:"ok",note:"階段 3 已完成日期／欄位驗證並接入：外資、投信、自營商（自行／避險分列）單日與 5／20 日累計（上市）。10/23、10/26 回「沒有符合條件的資料」，與 FMTQIK 同步缺日，研判為無交易日。"},
+ {name:"TWSE · MI_MARGN（融資融券）",http:"200",ct:"application/json",size:"約 473 KB",lat:"實測可讀",last:"2026-11-19 快照",keys:"股票代號、融資今日餘額、融資前日餘額、融券今日餘額…",verdict:"ok",note:"已接入上市彙總：融資 8,947,619 張（單日 -144,646 張）、融券 209,819 張。逐股彙總口徑已註明；金額餘額未自行估算。"},
+ {name:"TWSE · t187ap05_L（上市公司月營收）",http:"200",ct:"application/json",size:"約 611 KB",lat:"實測可讀",last:"資料年月 2026-10（11510）",keys:"公司代號、營業收入-當月營收、去年同月增減(%)、累計增減(%)…",verdict:"ok",note:"已接入卡片 19：台積電、鴻海、聯發科 2026-10 營收年增率。"},
+ {name:"TWSE · BWIBBU_ALL（個股 PE／殖利率／PB）",http:"200",ct:"application/json",size:"約 117 KB",lat:"實測可讀",last:"2026-11-19",keys:"Date、Code、Name、PEratio、DividendYield、PBratio",verdict:"ok",note:"個股層級資料，僅供對照；依規格不可平均冒充市場整體估值（卡片 5 仍待月報端點核實）。"},
+ {name:"TPEx · 上櫃行情／指數／三大法人",http:"200（行情）",ct:"application/json",size:"約 5.4 MB（行情）",lat:"約 8 秒（行情）",last:"2026-11-17（探針）",keys:"Date、Close、Change…",verdict:"unverified",note:"櫃買指數專屬端點與上櫃法人端點尚未完成驗證，卡片 2 與現貨合併（上市＋上櫃）因此未接入；上櫃行情全量回應過大，須伺服端快取。"},
+ {name:"TAIFEX · PutCallRatio（/v1/）",http:"200",ct:"application/octet-stream（JSON 內容）",size:"約 3 KB",lat:"實測可讀",last:"2026-11-19",keys:"Date、PutVolume、CallVolume、PutCallVolumeRatio%、PutOI、CallOI、PutCallOIRatio%",verdict:"ok",note:"已接入：2026-11-19 OI 比 41.00%、成交量比 73.38%，含近月歷史。無 /v1 路徑回 302，實作以 /v1 為準。"},
+ {name:"TAIFEX · 各期貨契約三大法人（/v1/）",http:"200",ct:"application/octet-stream（JSON 內容）",size:"約 34 KB",lat:"實測可讀",last:"2026-11-19",keys:"Date、ContractCode、Item、OpenInterest(Long/Short/Net)…",verdict:"ok",note:"階段 3 已完成欄位驗收並接入：臺股期貨（TX）外資未平倉淨 -99,219 口。"},
+ {name:"中央銀行 · BP01D01（美元匯率日資料）",http:"200",ct:"text/plain（JSON 內容）",size:"約 1.35 MB",lat:"實測可讀",last:"數列最新觀測 2026-10-30",keys:"meta、DataSet、Structure（PX 格式）",verdict:"stale",note:"檔案 prepared 2026-11-20 11:25，但 USD/TWD 數列最後觀測為 2026-10-30（32.478），故卡片 26 標記 stale。M1B／M2 代號未核實，不猜測。"},
+ {name:"財政部 · 出口主要貨品（8380）／總出口（6053）",http:"200（入口頁）",ct:"text/html（資料集頁）",size:"約 535 KB",lat:"—",last:"資料集頁可達",keys:"資料集含「電子零組件」「資通與視聽產品」分類",verdict:"unavailable",note:"資料集檔案下載與欄位解析尚未完成，卡片 13–16 維持暫無資料；不以其他口徑拼湊。"},
+ {name:"國發會 · 景氣指標及燈號（6099）",http:"200（入口頁）",ct:"text/html（資料集頁）",size:"約 532 KB",lat:"—",last:"資料集頁可達",keys:"領先／同時指標、燈號、綜合判斷分數、半導體設備進口構成項",verdict:"unavailable",note:"ZIP 專屬解析器尚未完成，卡片 17、20、21 維持暫無資料。"},
+ {name:"經濟部 · 外銷訂單／工業生產",http:"發布日曆已確認",ct:"—",size:"—",lat:"—",last:"10 月外銷訂單 2026-11-20 16:00 發布",keys:"發布日曆（官方）",verdict:"unavailable",note:"卡片 18、22 尚無已驗證的機器可讀端點；10 月外銷訂單於本快照抓取後（今日 16:00）才發布。"},
+ {name:"主計總處 · GDP／CPI（總體統計資料庫）",http:"未探針",ct:"—",size:"—",lat:"—",last:"—",keys:"數列代碼待 API 文件確認",verdict:"unverified",note:"依規格不猜 endpoint：須先自 API 說明確認數列代碼、修正與季調口徑，否則以官網 CSV／XLS 為備援。"},
+ {name:"FRED · DFII10（美國 10 年實質殖利率）",http:"200",ct:"text/csv（fredgraph）",size:"全歷史",lat:"實測可讀",last:"2026-11-18（2.88%）",keys:"DATE、DFII10",verdict:"ok",note:"階段 3 改用 FRED 公開 fredgraph CSV 成功接入（階段 2 探針環境曾逾時）。未使用 API 金鑰；金鑰絕不寫入頁面。"}
+];
+
+/* ===== sparkline ===== */
+function sparkSVG(hist){
+  var min = Math.min.apply(null, hist), max = Math.max.apply(null, hist), rg = (max - min) || 1;
+  var pts = hist.map(function(v, i){
+    var x = (i / (hist.length - 1)) * 100;
+    var y = 26 - ((v - min) / rg) * 22;
+    return x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ");
+  return '<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts + '" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
+}
+
+/* ===== render: KPI ===== */
+var kpiGrid = document.getElementById("kpiGrid");
+KPIS.forEach(function(k){
+  var d = document.createElement("div"); d.className = "kpi";
+  var val = k.value === null ? '<span class="na">暫無資料</span>' : k.value;
+  d.innerHTML = '<p class="k-label"></p><p class="k-value">' + val + ' <span class="unit"></span></p><p class="k-sub"></p>';
+  d.querySelector(".k-label").textContent = k.label;
+  d.querySelector(".unit").textContent = k.unit;
+  d.querySelector(".k-sub").textContent = k.sub;
+  kpiGrid.appendChild(d);
+});
+
+/* ===== render: quadrants ===== */
+var quadGrid = document.getElementById("quadGrid");
+QUADS.forEach(function(q){
+  var d = document.createElement("div"); d.className = "quad-card";
+  var lis = q.sup.map(function(s){ return "<li>支持證據：" + s + "</li>"; }).join("")
+          + q.con.map(function(s){ return "<li>相反證據：" + s + "</li>"; }).join("");
+  d.innerHTML = '<div class="q-head"><h3></h3><span class="quad-verdict ' + q.cls + '"></span></div>'
+    + '<p style="margin:4px 0 0;font-size:13.5px;color:var(--muted)"></p><ul>' + lis + '</ul>';
+  d.querySelector("h3").textContent = q.name;
+  d.querySelector(".quad-verdict").textContent = q.verdict;
+  d.querySelector("p").textContent = "判斷輸入：" + q.inputs + "（觀測基準日 2026-11-19）";
+  quadGrid.appendChild(d);
+});
+
+/* ===== render: 27 cards ===== */
+var STATUS_LABEL = {ok:"ok", stale:"stale", unverified:"unverified", unavailable:"unavailable"};
+function renderCards(tab){
+  var host = document.querySelector('[data-cards="' + tab + '"]');
+  if(!host || host.children.length) return;
+  CARDS.filter(function(c){return c.tab===tab;}).forEach(function(c){
+    var el = document.createElement("article"); el.className = "card";
+    var chipCls = c.status === "ok" ? "chip ok" : "chip warn";
+    var hasVal = c.value !== null && c.value !== undefined;
+    var chart = c.hist ? '<div class="spark">' + sparkSVG(c.hist) + '<p class="s-cap">' + c.histCap + ' · 完整 120 日／24 月序列持續建倉中</p></div>'
+                       : '<div class="chart-ph">' + (hasVal ? '圖表待歷史序列累積後繪製' : '圖表待資料接入後繪製') + '<br />視窗：' + c.win + ' · 月／季資料不插值為每日數字</div>';
+    el.innerHTML =
+      '<div class="c-top"><div><span class="c-no">卡片 ' + c.no + ' · ' + c.id + '</span><h3></h3></div><span class="' + chipCls + '"><span class="dot"></span>' + STATUS_LABEL[c.status] + '</span></div>'
+      + '<p class="big-value">' + (hasVal ? c.value : '<span class="na">暫無資料</span>') + '<span class="unit"></span></p>'
+      + '<dl class="meta">'
+      + '<div><dt>觀測日期</dt><dd>' + (c.obs || "—") + '</dd></div>'
+      + '<div><dt>發布時間</dt><dd>' + (hasVal ? "隨原始統計發布" : "—") + '</dd></div>'
+      + '<div><dt>前值</dt><dd>' + (c.prev || "—") + '</dd></div>'
+      + '<div><dt>變動（' + c.cmp + '）</dt><dd>' + (c.delta || "—") + '</dd></div>'
+      + '<div><dt>預期值</dt><dd>暫無預期</dd></div>'
+      + '<div><dt>下一次公告</dt><dd>' + (c.next || "暫無預告") + '</dd></div>'
+      + '<div><dt>更新頻率</dt><dd>' + c.freq + '</dd></div>'
+      + '<div><dt>抓取時間</dt><dd>' + (hasVal || c.status === "stale" ? FETCHED : "尚未接入") + '</dd></div>'
+      + '</dl>'
+      + chart
+      + '<p class="interp"></p>'
+      + '<details><summary>方法、口徑與來源</summary>'
+      + '<p class="meth"></p>'
+      + '<p class="kv">來源：<a target="_blank" rel="noopener"></a></p>'
+      + '<p class="kv">資料契約：<code>indicator_id=' + c.id + '</code> <code>status=' + c.status + '</code> <code>value=' + (hasVal ? "見卡面" : "null") + '</code> <code>next_release_at=' + (c.next ? '"' + c.next + '"' : "null") + '</code></p>'
+      + '</details>';
+    el.querySelector("h3").textContent = c.title;
+    el.querySelector(".unit").textContent = c.unit;
+    el.querySelector(".interp").textContent = c.interp;
+    el.querySelector(".meth").textContent = c.meth;
+    var a = el.querySelector("a"); a.href = c.url; a.textContent = c.src + "（官方來源）";
+    host.appendChild(el);
+  });
+}
+["market","flow","industry","macro"].forEach(renderCards);
+
+/* ===== render: verification ===== */
+var vHost = document.getElementById("verifyList");
+var vLabel = {ok:"已接入", stale:"內容過期", unverified:"待核實", unavailable:"尚未接入"};
+VERIFY.forEach(function(v){
+  var d = document.createElement("div"); d.className = "vrow";
+  var chipCls = v.verdict === "ok" ? "chip ok" : "chip warn";
+  d.innerHTML = '<h3></h3><div class="v-meta">'
+    + '<span class="' + chipCls + '">' + vLabel[v.verdict] + '</span>'
+    + '<span class="chip">HTTP ' + v.http + '</span>'
+    + '<span class="chip">' + v.ct + '</span>'
+    + '<span class="chip">' + v.size + '</span>'
+    + '<span class="chip">最後觀測 ' + v.last + '</span></div>'
+    + '<p><strong>回傳欄位（實測）：</strong><span class="keys"></span></p>'
+    + '<p class="note"></p>';
+  d.querySelector("h3").textContent = v.name;
+  d.querySelector(".keys").textContent = v.keys;
+  d.querySelector(".note").textContent = v.note;
+  vHost.appendChild(d);
+});
+
+/* ===== render: no-forecast list ===== */
+var nf = document.getElementById("noForecastList");
+CARDS.filter(function(c){return c.id!=="export_orders";}).forEach(function(c){
+  var row = document.createElement("div"); row.className = "event-row";
+  row.innerHTML = '<div class="event-date">—</div><div><p><strong></strong> <span class="chip warn">暫無預告</span></p><p class="e-sub"></p></div>';
+  row.querySelector("strong").textContent = "卡片 " + c.no + " · " + c.title;
+  row.querySelector(".e-sub").textContent = "頻率：" + c.freq + " · 來源：" + c.src;
+  nf.appendChild(row);
+});
+
+/* ===== tabs ===== */
+var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+function activate(tab, focus){
+  tabs.forEach(function(t){
+    var on = t === tab;
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;
+    var p = document.getElementById(t.getAttribute("aria-controls"));
+    p.classList.toggle("active", on); p.hidden = !on;
+  });
+  if(focus) tab.focus();
+}
+tabs.forEach(function(t, i){
+  t.addEventListener("click", function(){ activate(t, false); });
+  t.addEventListener("keydown", function(e){
+    var j = null;
+    if(e.key === "ArrowRight") j = (i + 1) % tabs.length;
+    else if(e.key === "ArrowLeft") j = (i - 1 + tabs.length) % tabs.length;
+    else if(e.key === "Home") j = 0;
+    else if(e.key === "End") j = tabs.length - 1;
+    if(j !== null){ e.preventDefault(); activate(tabs[j], true); }
+  });
+});
+
+/* ===== theme ===== */
+var themeBtn = document.getElementById("themeBtn");
+var themeLabel = document.getElementById("themeLabel");
+var themeIcon = document.getElementById("themeIcon");
+var mq = window.matchMedia("(prefers-color-scheme: dark)");
+function applyTheme(mode){
+  var dark = mode === "dark" || (mode === "system" && mq.matches);
+  if(mode === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = mode;
+  if(mode === "system" && mq.matches) document.documentElement.dataset.theme = "dark";
+  themeLabel.textContent = mode === "system" ? "跟隨系統" : (mode === "dark" ? "深色" : "淺色");
+  themeIcon.textContent = dark ? "☾" : "☀";
+  themeBtn.setAttribute("aria-label", "目前：" + themeLabel.textContent + "，點擊切換深淺色模式");
+}
+var themeMode = "system";
+applyTheme("system");
+if(mq.addEventListener) mq.addEventListener("change", function(){ if(themeMode==="system") applyTheme("system"); });
+themeBtn.addEventListener("click", function(){
+  var curDark = document.documentElement.dataset.theme === "dark" || (themeMode==="system" && mq.matches);
+  themeMode = curDark ? "light" : "dark";
+  applyTheme(themeMode);
+});
+
+/* ===== countdown ===== */
+var target = new Date("2026-11-20T16:00:00+08:00").getTime();
+function tick(){
+  var diff = target - Date.now();
+  var txt;
+  if(diff <= 0){ txt = "預定發布時間已到，等待官方發布"; }
+  else{
+    var s = Math.floor(diff/1000), d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), sec = s%60;
+    txt = d + " 天 " + h + " 小時 " + m + " 分 " + sec + " 秒";
+  }
+  var cd = document.getElementById("cdTime"); if(cd) cd.textContent = txt;
+  document.querySelectorAll("[data-countdown-inline]").forEach(function(el){ el.textContent = "還有 " + txt; });
+}
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>

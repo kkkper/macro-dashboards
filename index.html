@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>總經儀表板 · Macro Dashboards</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1a1d21; --muted: #5c6470;
+    --border: #dde1e7; --accent: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121417; --card: #1c1f24; --text: #e8eaed; --muted: #9aa3af;
+      --border: #2e3238; --accent: #6ea8ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 48px 20px;
+    font-family: -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg); color: var(--text);
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 32px; line-height: 1.6; }
+  .cards { display: grid; gap: 16px; }
+  @media (min-width: 560px) { .cards { grid-template-columns: 1fr 1fr; } }
+  a.card {
+    display: block; padding: 24px; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); color: var(--text); text-decoration: none;
+  }
+  a.card:hover { border-color: var(--accent); }
+  .card h2 { font-size: 1.15rem; margin: 0 0 8px; }
+  .card p { margin: 0; color: var(--muted); line-height: 1.6; font-size: 0.95rem; }
+  .card .go { color: var(--accent); font-size: 0.9rem; }
+  footer { margin-top: 32px; color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+</style>
+</head>
+<body>
+<main>
+  <h1>總經儀表板</h1>
+  <p class="sub">兩套總經監控儀表板的整合入口：美股總經雷達與台股總經儀表板。資料全數來自官方來源，不估計、不補造。</p>
+  <div class="cards">
+    <a class="card" href="us-radar/">
+      <h2>美股總經雷達</h2>
+      <p>追蹤影響美股與 Bitcoin 的關鍵美國總經指標（FRED／ISM／CME），台灣時間呈現，一眼紅綠判讀。</p>
+      <p class="go">開啟 →</p>
+    </a>
+    <a class="card" href="taiwan-dashboard/">
+      <h2>台股總經儀表板</h2>
+      <p>台股總經 × 資金流 × 產業景氣：市場趨勢、資金風險、產業基本面、總經估值壓力四軸獨立判讀。</p>
+      <p class="go">開啟 →</p>
+    </a>
+  </div>
+  <footer>維護規則與資料來源見 repo 內 README.md；維運流程見 PLAYBOOK.md。</footer>
+</main>
+</body>
+</html>

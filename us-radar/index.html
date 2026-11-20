@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>美股總經雷達</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2rem; }
+      * { box-sizing: border-box; }
+      :root, :root[data-theme="light"] {
+        color-scheme: light;
+        --bg: #f6f6f3;
+        --surface: #ffffff;
+        --surface-2: #efefea;
+        --ink: #191c1f;
+        --ink-2: #454b52;
+        --muted: #767d85;
+        --line: #e2e2da;
+        --line-strong: #c9c9bf;
+        --accent: #1f4e5f;
+        --accent-soft: #e7eff1;
+        --red: #c62f22;
+        --red-soft: #fbeae8;
+        --green: #0e7a4e;
+        --green-soft: #e5f3ec;
+        --amber: #9a6a00;
+        --amber-soft: #faf0d7;
+        --bar-track: #e6e6df;
+        --zero: #b9b9ae;
+        --hero-bg: #1f2a2e;
+        --hero-ink: #f2f3ee;
+        --hero-muted: #b9c4c2;
+        --shadow: none;
+      }
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #26282c;
+        --surface: #303237;
+        --surface-2: #2a2c30;
+        --ink: #eef0f2;
+        --ink-2: #c3c8cd;
+        --muted: #9aa1a9;
+        --line: #43464c;
+        --line-strong: #585c63;
+        --accent: #8fc3d4;
+        --accent-soft: #33454c;
+        --red: #ff8a7d;
+        --red-soft: #4c322f;
+        --green: #5fd598;
+        --green-soft: #2c463a;
+        --amber: #f2c14e;
+        --amber-soft: #4a3f24;
+        --bar-track: #43464c;
+        --zero: #6d7178;
+        --hero-bg: #1d2126;
+        --hero-ink: #f2f3ee;
+        --hero-muted: #a7b3b0;
+        --shadow: none;
+      }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+        font-size: 15.5px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: var(--accent); }
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 0 18px 56px; }
+
+      /* ---------- sticky nav ---------- */
+      .topbar {
+        position: sticky; top: 0; z-index: 50;
+        background: var(--bg);
+        border-bottom: 1px solid var(--line);
+      }
+      .topbar-in {
+        max-width: 1060px; margin: 0 auto; padding: 8px 18px;
+        display: flex; align-items: flex-start; gap: 10px;
+      }
+      .tabs { display: flex; flex-wrap: wrap; gap: 3px; flex: 1 1 auto; }
+      .tab-btn {
+        appearance: none; border: 1px solid transparent; background: transparent;
+        color: var(--ink-2); font: inherit; font-size: 14.5px; font-weight: 500;
+        padding: 5px 12px; border-radius: 999px; cursor: pointer; min-height: 36px;
+        white-space: nowrap;
+      }
+      .tab-btn:hover { background: var(--surface-2); color: var(--ink); }
+      .tab-btn[aria-selected="true"] {
+        background: var(--ink); color: var(--bg); font-weight: 700;
+      }
+      .theme-btn {
+        appearance: none; border: 1px solid var(--line-strong); background: var(--surface);
+        color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 500;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 999px; cursor: pointer; min-height: 36px;
+        flex: 0 0 auto; white-space: nowrap;
+      }
+      .theme-btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+      .theme-btn .icon-sun { display: none; }
+      :root[data-theme="dark"] .theme-btn .icon-sun { display: block; }
+      :root[data-theme="dark"] .theme-btn .icon-moon { display: none; }
+
+      /* ---------- sections ---------- */
+      .panel { display: none; padding-top: 22px; }
+      .panel.active { display: block; }
+      .sec-head { margin: 4px 0 14px; }
+      .sec-head h2 {
+        font-family: "Noto Serif TC", serif; font-size: 24px; font-weight: 900;
+        margin: 0 0 4px; letter-spacing: .01em;
+      }
+      .sec-head p { margin: 0; color: var(--muted); font-size: 14px; }
+      .subhead {
+        font-size: 16.5px; font-weight: 700; margin: 26px 0 10px;
+        display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+      }
+      .subhead small { font-weight: 400; color: var(--muted); font-size: 13px; }
+
+      /* ---------- hero / context ---------- */
+      .hero {
+        background: var(--hero-bg); color: var(--hero-ink);
+        border-radius: 14px; padding: 24px 26px 20px; margin-bottom: 18px;
+      }
+      .hero .kicker { font-size: 13px; color: var(--hero-muted); letter-spacing: .12em; margin: 0 0 8px; }
+      .hero h1 {
+        font-family: "Noto Serif TC", serif; font-size: clamp(24px, 4.6vw, 34px);
+        line-height: 1.3; font-weight: 900; margin: 0 0 10px;
+      }
+      .hero p { margin: 0 0 8px; color: var(--hero-ink); font-size: 15px; max-width: 46em; }
+      .hero p.dim { color: var(--hero-muted); font-size: 14px; }
+      .verdict-banner {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.18);
+        font-size: 15px;
+      }
+      .verdict-banner b { font-size: 17px; }
+
+      /* ---------- verdict pills & dots ---------- */
+      .pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+        white-space: nowrap;
+      }
+      .pill .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+      .pill.bad { background: var(--red-soft); color: var(--red); }
+      .pill.bad .dot { background: var(--red); }
+      .pill.good { background: var(--green-soft); color: var(--green); }
+      .pill.good .dot { background: var(--green); }
+      .pill.mid { background: var(--amber-soft); color: var(--amber); }
+      .pill.mid .dot { background: var(--amber); }
+      .pill.on-dark { background: rgba(255,255,255,.12); color: #ffb3a8; }
+      .pill.on-dark .dot { background: #ff7a6b; }
+
+      /* ---------- generic blocks ---------- */
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      .block {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 12px; padding: 18px 20px;
+      }
+      .block h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
+      .block p { margin: 0 0 8px; }
+      .block p:last-child { margin-bottom: 0; }
+      .muted { color: var(--muted); }
+      .small { font-size: 13px; }
+      .tiny { font-size: 12.5px; }
+
+      /* ---------- countdown events ---------- */
+      .event-list { list-style: none; margin: 0; padding: 0; }
+      .event-list li {
+        display: flex; gap: 12px; align-items: baseline; justify-content: space-between;
+        padding: 10px 0; border-bottom: 1px solid var(--line);
+      }
+      .event-list li:last-child { border-bottom: none; padding-bottom: 2px; }
+      .event-list li:first-child { padding-top: 2px; }
+      .ev-main { min-width: 0; }
+      .ev-title { font-weight: 700; font-size: 15px; }
+      .ev-when { color: var(--muted); font-size: 13px; }
+      .cd {
+        font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent);
+        font-size: 14.5px; white-space: nowrap; text-align: right;
+      }
+      .cd small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+      .star { color: var(--amber); font-weight: 900; }
+
+      /* ---------- fedwatch bars ---------- */
+      .fw-row { margin: 12px 0; }
+      .fw-row .fw-top { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+      .fw-row .fw-top b { font-variant-numeric: tabular-nums; }
+      .bar { height: 10px; border-radius: 999px; background: var(--bar-track); margin-top: 5px; overflow: hidden; }
+      .bar > i { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+      .bar > i.hot { background: var(--red); }
+      .bar > i.cold { background: var(--green); }
+
+      .big-rate {
+        font-family: "Noto Serif TC", serif; font-weight: 900;
+        font-size: clamp(34px, 6vw, 46px); line-height: 1.1; letter-spacing: .01em;
+      }
+      .rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+      /* ---------- indicator cards ---------- */
+      .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .card {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 12px; padding: 18px 20px 14px;
+        display: flex; flex-direction: column; gap: 0;
+      }
+      .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+      .card h3 { margin: 0; font-size: 16.5px; font-weight: 700; line-height: 1.4; }
+      .card h3 .code { display: block; font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .04em; margin-top: 1px; }
+      .card .period { font-size: 12.5px; color: var(--muted); white-space: nowrap; padding-top: 3px; }
+      .latest { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 10px 0 2px; }
+      .latest .val {
+        font-family: "Noto Serif TC", serif; font-size: 30px; font-weight: 900; line-height: 1.15;
+        font-variant-numeric: tabular-nums;
+      }
+      .latest .val small { font-size: 15px; font-weight: 700; }
+      .latest .sub { color: var(--ink-2); font-size: 13.5px; }
+      .meta-rows { margin: 8px 0 0; border-top: 1px solid var(--line); }
+      .meta-rows .row {
+        display: flex; justify-content: space-between; gap: 12px;
+        padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+      }
+      .meta-rows .row span:first-child { color: var(--muted); flex: 0 0 auto; }
+      .meta-rows .row span:last-child { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+      .spark {
+        margin-top: 12px; background: var(--surface-2); border-radius: 8px;
+        padding: 10px 12px 8px;
+      }
+      .spark svg { display: block; width: 100%; height: 44px; }
+      .spark .zero-line { stroke: var(--zero); stroke-width: 1; stroke-dasharray: 3 3; }
+      .spark .trend { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+      .spark .pt { fill: var(--accent); }
+      .spark .pt-last { fill: var(--red); }
+      .spark-cap { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 5px; flex-wrap: wrap; }
+      .spark-note { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+      .next-rel {
+        margin-top: 12px; padding: 9px 12px; border-radius: 8px;
+        background: var(--accent-soft); font-size: 13.5px;
+        display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap;
+      }
+      .next-rel .cd { font-size: 13.5px; }
+      .next-rel .cd small { display: inline; }
+      .explain { margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+      .explain p { margin: 0 0 6px; }
+      .explain p:last-child { margin-bottom: 0; }
+      .explain b { color: var(--ink); }
+      .card-foot {
+        margin-top: auto; padding-top: 12px; font-size: 12.5px; color: var(--muted);
+        display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      }
+
+      /* ---------- calendar ---------- */
+      .cal-list { list-style: none; margin: 0; padding: 0; }
+      .cal-list li {
+        display: grid; grid-template-columns: 118px 74px 1fr; gap: 12px;
+        padding: 11px 2px; border-bottom: 1px solid var(--line); align-items: baseline;
+      }
+      .cal-list .d { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .cal-list .d small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; }
+      .cal-list .t { font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+      .cal-list .what { min-width: 0; }
+      .cal-list .what b { font-weight: 700; }
+      .cal-list .what .note { display: block; color: var(--muted); font-size: 13px; }
+      .cal-list .cd { font-size: 13px; }
+      .month-label {
+        font-family: "Noto Serif TC", serif; font-weight: 900; font-size: 18px;
+        margin: 22px 0 4px;
+      }
+      .month-label:first-of-type { margin-top: 6px; }
+
+      .src-links { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+      .src-links a { display: inline-block; padding: 6px 0; }
+      footer {
+        margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+        color: var(--muted); font-size: 13px;
+      }
+      footer p { margin: 0 0 6px; }
+
+      @media (max-width: 720px) {
+        .wrap { padding: 0 14px 44px; }
+        .topbar-in { padding: 8px 14px; }
+        .tab-btn { padding: 5px 11px; }
+        .grid, .grid-3, .cards, .rate-grid { grid-template-columns: 1fr; }
+        .hero { padding: 20px 18px 16px; }
+        .cal-list li { grid-template-columns: 92px 1fr; }
+        .cal-list .t { grid-column: 1; }
+        .cal-list .what { grid-column: 2; grid-row: 1 / span 2; }
+        .latest .val { font-size: 27px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-in">
+        <nav class="tabs" role="tablist" aria-label="雷達分區">
+          <button class="tab-btn" role="tab" aria-selected="true" data-tab="overview">概覽</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="rates">利率</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="inflation">通脹</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="jobs">就業</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="growth">增長·市場</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="calendar">日曆</button>
+        </nav>
+        <button class="theme-btn" id="themeToggle" type="button" aria-label="切換深色或淺色模式">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <span id="themeLabel">深色</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ================= 概覽 ================= -->
+      <section class="panel active" id="panel-overview" role="tabpanel">
+        <div class="hero">
+          <p class="kicker">背景 · 美聯儲加息周期</p>
+          <h1>數據太熱，美聯儲就更難停手</h1>
+          <p>美聯儲目前處於加息周期：通脹和就業數據越熱，市場越預期繼續加息，高利率維持越久，美股和比特幣的估值壓力越大，所以<b>數據太熱 = 利空</b>。</p>
+          <p>最理想的是<b>溫和降溫</b>——通脹慢慢回落、就業不過熱也不衰退，美聯儲可以停手甚至轉向。但數據若突然崩壞，則會引發衰退擔憂，同樣是利空。看每張卡的紅綠判斷前，先記住這條主線。</p>
+          <div class="verdict-banner">
+            <span>當前總體判斷</span>
+            <span class="pill on-dark"><span class="dot"></span>偏鷹 · 偏利空</span>
+            <span style="color:var(--hero-muted);font-size:13.5px">10 月 CPI、非農、JOLTS 均偏熱；CME FedWatch 顯示 12 月加息概率 100%。</span>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="block">
+            <h3>近期重點事件</h3>
+            <ul class="event-list">
+              <li>
+                <div class="ev-main">
+                  <div class="ev-title">PCE 通脹（10 月）＋ GDP 三季度修正值</div>
+                  <div class="ev-when">11 月 25 日（三）21:30 · 台灣時間</div>
+                </div>
+                <div class="cd" data-countdown="2026-11-25T21:30:00+08:00">—</div>
+              </li>
+              <li>
+                <div class="ev-main">
+                  <div class="ev-title">非農就業 ＋ 失業率（11 月）<span class="star"> ★</span></div>
+                  <div class="ev-when">12 月 4 日（五）21:30 · 台灣時間</div>
+                </div>
+                <div class="cd" data-countdown="2026-12-04T21:30:00+08:00">—</div>
+              </li>
+              <li>
+                <div class="ev-main">
+                  <div class="ev-title">FOMC 利率決議 ＋ 點陣圖 ＋ 經濟預測<span class="star"> ★★★</span></div>
+                  <div class="ev-when">12 月 10 日（四）03:00 · 03:30 主席新聞發布會</div>
+                </div>
+                <div class="cd" data-countdown="2026-12-10T03:00:00+08:00">—</div>
+              </li>
+              <li>
+                <div class="ev-main">
+                  <div class="ev-title">CPI 通脹（11 月）<span class="star"> ★</span></div>
+                  <div class="ev-when">12 月 10 日（四）21:30 · 注意：這次在議息之後才公布</div>
+                </div>
+                <div class="cd" data-countdown="2026-12-10T21:30:00+08:00">—</div>
+              </li>
+            </ul>
+            <p class="small muted" style="margin-top:10px">完整 60 天日曆在「日曆」分區，共 31 項事件。倒計時切換分區時會繼續走。</p>
+          </div>
+
+          <div class="block">
+            <h3>當前利率 · 12 月加息概率</h3>
+            <div class="big-rate">3.75% – 4.00%</div>
+            <p class="small muted">聯邦基金利率目標區間（上限 DFEDTARU 4.00% · 下限 DFEDTARL 3.75%）</p>
+            <div class="fw-row">
+              <div class="fw-top"><span>12 月加息 +25bp → 4.00%–4.25%</span><b>88.5%</b></div>
+              <div class="bar"><i class="hot" style="width:88.5%"></i></div>
+            </div>
+            <div class="fw-row">
+              <div class="fw-top"><span>12 月加息 +50bp</span><b>11.5%</b></div>
+              <div class="bar"><i class="hot" style="width:11.5%"></i></div>
+            </div>
+            <div class="fw-row">
+              <div class="fw-top"><span>維持不變 / 降息</span><b>0%</b></div>
+              <div class="bar"><i class="cold" style="width:0%"></i></div>
+            </div>
+            <p class="small muted">加息概率合計 100%。來源：CME FedWatch，2026-11-14。詳情見「利率」分區。</p>
+          </div>
+        </div>
+
+        <h3 class="subhead">最新一輪數據速覽 <small>點分區標籤看每張卡的細節、走勢與下次公布時間</small></h3>
+        <div class="grid-3">
+          <div class="block">
+            <h3>通脹：全面偏熱</h3>
+            <p>CPI 環比 +0.35%、核心 CPI +0.30%，雙雙高於預期；PCE 環比 +0.49% 升幅更大；PPI 同比仍高達 +6.52%。六項通脹指標全部偏利空。</p>
+            <p><span class="pill bad"><span class="dot"></span>利空</span></p>
+          </div>
+          <div class="block">
+            <h3>就業：穩而不弱</h3>
+            <p>非農新增 16.5 萬高於預期，失業率降至 4.1%，JOLTS 空缺回升至 752.3 萬——勞動市場沒有給美聯儲停手的理由。只有初請失業金維持低位，略偏利多。</p>
+            <p><span class="pill bad"><span class="dot"></span>偏利空</span></p>
+          </div>
+          <div class="block">
+            <h3>增長·市場：長息破 5%</h3>
+            <p>GDP 三季度年化 +3.4%、零售銷售 10 月環比 +0.21%（同比 +6.82%），經濟不弱；10 年期美債收益率仍處 5.07% 高位，對成長股估值壓力最直接。</p>
+            <p><span class="pill bad"><span class="dot"></span>偏利空</span></p>
+          </div>
+        </div>
+
+        <h3 class="subhead">怎麼看這個雷達</h3>
+        <div class="block">
+          <p><b>紅燈（利空）</b>多數出現在數據「太熱」時：通脹高於預期、就業強勁、工資升得快，都會推高加息預期。<b>綠燈（利多）</b>通常是數據溫和降溫：通脹回落但經濟未衰退。<b>黃燈（中性）</b>代表方向未明或影響互相抵銷。</p>
+          <p class="small muted">判斷基準是「對利率路徑的影響」，不是數據本身好壞：例如失業率下跌本是好事，但在加息周期裡代表美聯儲更難轉鴿，所以標為偏利空。每張卡都寫明了升跌各自意味著什麼。</p>
+        </div>
+      </section>
+
+      <!-- ================= 利率 ================= -->
+      <section class="panel" id="panel-rates" role="tabpanel">
+        <div class="sec-head">
+          <h2>利率與美聯儲</h2>
+          <p>政策利率、市場定價的加息概率，以及下一次議息的背景。時間均為台灣時間。</p>
+        </div>
+
+        <div class="rate-grid">
+          <div class="block">
+            <h3>聯邦基金利率目標區間</h3>
+            <div class="big-rate">3.75% – 4.00%</div>
+            <div class="meta-rows">
+              <div class="row"><span>上限（DFEDTARU）</span><span>4.00%</span></div>
+              <div class="row"><span>下限（DFEDTARL）</span><span>3.75%</span></div>
+              <div class="row"><span>上次會議</span><span>10 月 28 日維持不變，10–2 通過</span></div>
+              <div class="row"><span>9 月 SEP 年底利率中位數</span><span>4.1%</span></div>
+            </div>
+            <div class="next-rel">
+              <span>下次 FOMC：12 月 10 日（四）03:00 ＋ 點陣圖／經濟預測</span>
+              <span class="cd" data-countdown="2026-12-10T03:00:00+08:00">—</span>
+            </div>
+            <p class="small muted" style="margin-top:10px">03:30 主席 Kevin Warsh 新聞發布會。11 月 28 日至 12 月 10 日為美聯儲靜默期，官員不公開講話。來源：美聯儲 / FRED。</p>
+          </div>
+
+          <div class="block">
+            <h3>CME FedWatch · 12 月會議概率</h3>
+            <p class="small muted">市場用利率期貨定價的下一次會議結果，2026-11-14 快照。</p>
+            <div class="fw-row">
+              <div class="fw-top"><span>加息 +25bp → 4.00%–4.25%</span><b>88.5%</b></div>
+              <div class="bar"><i class="hot" style="width:88.5%"></i></div>
+            </div>
+            <div class="fw-row">
+              <div class="fw-top"><span>加息 +50bp</span><b>11.5%</b></div>
+              <div class="bar"><i class="hot" style="width:11.5%"></i></div>
+            </div>
+            <div class="fw-row">
+              <div class="fw-top"><span>維持不變</span><b>0%</b></div>
+              <div class="bar"><i style="width:0%"></i></div>
+            </div>
+            <div class="fw-row">
+              <div class="fw-top"><span>降息</span><b>0%</b></div>
+              <div class="bar"><i class="cold" style="width:0%"></i></div>
+            </div>
+            <p>加息概率合計 <b>100%</b>——市場已完全定價 12 月繼續加息，分歧只在幅度。概率若因新數據下移（例如 PCE 明顯降溫），通常即時利多風險資產。</p>
+            <p class="small muted">來源：<a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" rel="noopener">CME FedWatch Tool</a></p>
+          </div>
+        </div>
+
+        <h3 class="subhead">為什麼市場這麼肯定會加息</h3>
+        <div class="block">
+          <p>10 月 28 日 FOMC 以 <b>10–2</b> 通過維持 3.75%–4.00%，但兩張反對票——Cook 與 Hammack——主張<b>立即加息</b>，顯示委員會內部鷹派力量正在增強。9 月經濟預測（SEP）的年底利率中位數為 <b>4.1%</b>，本身就指向年底前再加一次。主席為 Kevin Warsh。</p>
+          <p>之後公布的 10 月 CPI、非農與 JOLTS 全部偏熱，沒有一份數據支持轉鴿。換句話說：12 月的懸念不是「加不加」，而是「加 25 還是 50」，以及點陣圖對 2027 年路徑的指引。</p>
+        </div>
+
+        <h3 class="subhead">市場利率參照 <small>詳細卡片在「增長·市場」分區</small></h3>
+        <div class="grid-3">
+          <div class="block">
+            <h3>2 年期美債收益率</h3>
+            <div class="latest"><span class="val">4.80<small>%</small></span></div>
+            <p class="small muted">2026-11-18 · DGS2。最貼近政策預期：市場認為利率會更高、維持更久，它就升。</p>
+          </div>
+          <div class="block">
+            <h3>10 年期美債收益率</h3>
+            <div class="latest"><span class="val">5.07<small>%</small></span></div>
+            <p class="small muted">2026-11-18 · DGS10。與 2 年期利差 +0.27 個百分點。處於 5% 以上對成長股估值壓力最大。</p>
+          </div>
+          <div class="block">
+            <h3>美元指數（FRED 廣義）</h3>
+            <div class="latest"><span class="val">122.65</span></div>
+            <p class="small muted">2026-11-13 · DTWEXBGS，美聯儲廣義貿易加權美元指數，並非 ICE 的 DXY。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 通脹 ================= -->
+      <section class="panel" id="panel-inflation" role="tabpanel">
+        <div class="sec-head">
+          <h2>通脹</h2>
+          <p>美聯儲加息與否的第一決定因素。環比看短期動能，同比看大方向；走勢圖統一畫環比 %。時間均為台灣時間。</p>
+        </div>
+        <div class="cards">
+
+          <article class="card">
+            <div class="card-top">
+              <h3>CPI 消費者物價指數<span class="code">FRED · CPIAUCSL</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+0.35<small>%</small></span>
+              <span class="sub">環比（和上月比）</span>
+              <span class="pill bad"><span class="dot"></span>利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期（環比）</span><span>+0.3%</span></div>
+              <div class="row"><span>前值（環比）</span><span>+0.65%</span></div>
+              <div class="row"><span>同比（和去年同月比）</span><span>+4.08%</span></div>
+              <div class="row"><span>指數水平</span><span>337.476</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="27.0" x2="260" y2="27.0"/><polyline class="trend" points="10.0,22.2 20.4,20.5 30.9,20.6 41.3,19.3 51.7,17.4 62.2,21.9 72.6,26.2 83.0,23.3 93.5,24.8 103.9,21.3 114.3,21.8 124.8,19.1 135.2,20.3 145.7,20.3 156.1,23.1 166.5,21.0 177.0,7.5 187.4,12.6 197.8,16.3 208.3,36.5 218.7,25.3 229.1,18.1 239.6,12.4 250.0,19.1"/><circle class="pt-last" cx="250.0" cy="19.1" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-09 至 2026-10，共 24 點）· 期間最低 -0.42% · 最高 +0.87%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 10 日（四）21:30（11 月數據）</span>
+              <span class="cd" data-countdown="2026-12-10T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>一般市民買東西的價格升了多少，市場最關注的通脹數字。</p>
+              <p><b>升意味著</b>通脹黏性強、美聯儲更傾向繼續加息，對股市偏利空；<b>跌（溫和）意味著</b>通脹受控、加息壓力減，是最理想的劇本。今次高於預期，所以判利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>核心 CPI<span class="code">FRED · CPILFESL · 剔除食品和能源</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+0.30<small>%</small></span>
+              <span class="sub">環比</span>
+              <span class="pill bad"><span class="dot"></span>利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期（環比）</span><span>+0.2%</span></div>
+              <div class="row"><span>前值（環比）</span><span>+0.33%</span></div>
+              <div class="row"><span>同比</span><span>+2.87%</span></div>
+              <div class="row"><span>指數水平</span><span>339.900</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="35.4" x2="260" y2="35.4"/><polyline class="trend" points="10.0,15.3 20.4,15.0 30.9,16.6 41.3,23.2 51.7,7.5 62.2,18.7 72.6,30.9 83.0,19.8 93.5,26.9 103.9,20.1 114.3,15.0 124.8,15.1 135.2,21.2 145.7,20.2 156.1,16.1 166.5,21.3 177.0,22.6 187.4,10.8 197.8,21.8 208.3,36.5 218.7,21.3 229.1,16.4 239.6,13.5 250.0,16.0"/><circle class="pt-last" cx="250.0" cy="16.0" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-09 至 2026-10，共 24 點）· 期間最低 -0.02% · 最高 +0.43%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 10 日（四）21:30（11 月數據）</span>
+              <span class="cd" data-countdown="2026-12-10T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>扣掉波動大的食品和能源後，剩下的「底層通脹」，更能看出物價壓力是否根深蒂固。</p>
+              <p><b>升意味著</b>租金、服務等黏性價格還在漲，美聯儲最擔心的正是這種；<b>跌意味著</b>底層壓力真正緩和。今次 +0.30% 高於預期的 +0.2%，判利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>PCE 物價指數<span class="code">FRED · PCEPI</span></h3>
+              <span class="period">2026 年 9 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+0.49<small>%</small></span>
+              <span class="sub">環比</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期（環比）</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（環比）</span><span>+0.32%</span></div>
+              <div class="row"><span>同比</span><span>+3.65%</span></div>
+              <div class="row"><span>指數水平</span><span>132.257</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="32.4" x2="260" y2="32.4"/><polyline class="trend" points="10.0,21.7 20.4,26.6 30.9,22.3 41.3,18.5 51.7,21.4 62.2,29.3 72.6,23.2 83.0,24.7 93.5,22.3 103.9,26.9 114.3,22.3 124.8,20.8 135.2,26.5 145.7,24.5 156.1,19.7 166.5,20.4 177.0,18.6 187.4,7.5 197.8,15.1 208.3,15.1 218.7,36.5 229.1,30.0 239.6,19.6 250.0,12.9"/><circle class="pt-last" cx="250.0" cy="12.9" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-10 至 2026-09，共 24 點）· 期間最低 -0.10% · 最高 +0.63%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：11 月 25 日（三）21:30（10 月數據）</span>
+              <span class="cd" data-countdown="2026-11-25T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>按個人消費支出計算的物價指數，涵蓋範圍比 CPI 廣，公布時間較遲。</p>
+              <p><b>升意味著</b>消費端通脹未降溫；<b>跌意味著</b>需求帶動的物價壓力減弱。環比 +0.49% 是明顯偏熱的升幅，故判偏利空——11 月 25 日的新一期是近期第一個觀察點。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BEA 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>核心 PCE<span class="code">FRED · PCEPILFE · 美聯儲 2% 目標的官方標尺</span></h3>
+              <span class="period">2026 年 9 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+0.32<small>%</small></span>
+              <span class="sub">環比</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期（環比）</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（環比）</span><span>+0.26%</span></div>
+              <div class="row"><span>同比</span><span>+3.12%</span></div>
+              <div class="row"><span>指數水平</span><span>130.902</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="36.5" x2="260" y2="36.5"/><polyline class="trend" points="10.0,15.5 20.4,26.3 30.9,24.1 41.3,12.2 51.7,13.4 62.2,28.2 72.6,14.2 83.0,19.3 93.5,18.1 103.9,23.1 114.3,20.1 124.8,19.5 135.2,23.5 145.7,25.1 156.1,13.3 166.5,7.5 177.0,11.8 187.4,17.7 197.8,15.7 208.3,13.8 218.7,26.7 229.1,26.4 239.6,17.3 250.0,13.3"/><circle class="pt-last" cx="250.0" cy="13.3" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-10 至 2026-09，共 24 點）· 期間最低 +0.11% · 最高 +0.40%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：11 月 25 日（三）21:30（10 月數據）</span>
+              <span class="cd" data-countdown="2026-11-25T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>美聯儲判斷通脹是否達標時，官方用的就是這一項——重要性高於 CPI。</p>
+              <p><b>升意味著</b>距離 2% 目標更遠，加息理據更強；<b>跌意味著</b>向目標靠近。同比 +3.12% 仍遠高於目標，環比亦偏熱，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BEA 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>PPI 生產者物價指數<span class="code">FRED · PPIFIS</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+0.35<small>%</small></span>
+              <span class="sub">環比</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期（環比）</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（環比）</span><span>+1.41%</span></div>
+              <div class="row"><span>同比</span><span>+6.52%</span></div>
+              <div class="row"><span>指數水平</span><span>160.254</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="31.8" x2="260" y2="31.8"/><polyline class="trend" points="10.0,30.0 20.4,24.7 30.9,21.0 41.3,28.8 51.7,33.9 62.2,36.5 72.6,26.0 83.0,29.0 93.5,17.8 103.9,35.0 114.3,21.2 124.8,29.6 135.2,24.8 145.7,25.7 156.1,21.8 166.5,23.5 177.0,18.4 187.4,13.1 197.8,22.8 208.3,34.0 218.7,30.1 229.1,24.7 239.6,7.5 250.0,25.8"/><circle class="pt-last" cx="250.0" cy="25.8" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-11 至 2026-10，共 24 點）· 期間最低 -0.27% · 最高 +1.41%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 15 日（二）21:30（11 月數據）</span>
+              <span class="cd" data-countdown="2026-12-15T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>企業出廠和批發層面的價格，是 CPI 的上游——這裡漲，幾個月後可能傳導到消費者。</p>
+              <p><b>升意味著</b>成本壓力未消，未來 CPI 有再升風險；<b>跌意味著</b>上游先降溫，是通脹見頂的早期訊號。同比 +6.52% 仍然很高，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>核心 PPI<span class="code">FRED · PPIFES · 最終需求扣食品和能源</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+0.33<small>%</small></span>
+              <span class="sub">環比</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期（環比）</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（環比）</span><span>+0.82%</span></div>
+              <div class="row"><span>同比</span><span>+5.04%</span></div>
+              <div class="row"><span>指數水平</span><span>156.740</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="30.7" x2="260" y2="30.7"/><polyline class="trend" points="10.0,30.8 20.4,21.8 30.9,15.1 41.3,25.9 51.7,25.7 62.2,36.5 72.6,20.0 83.0,27.5 93.5,8.6 103.9,36.0 114.3,16.2 124.8,22.2 135.2,23.7 145.7,16.6 156.1,7.5 166.5,22.7 177.0,22.7 187.4,10.1 197.8,31.0 208.3,18.7 218.7,22.9 229.1,25.4 239.6,7.8 250.0,21.6"/><circle class="pt-last" cx="250.0" cy="21.6" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-11 至 2026-10，共 24 點）· 期間最低 -0.21% · 最高 +0.83%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 15 日（二）21:30（11 月數據）</span>
+              <span class="cd" data-countdown="2026-12-15T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>PPI 的核心版本，剔除食品和能源，看上游底層成本趨勢。</p>
+              <p><b>升意味著</b>企業成本底層仍在漲，轉嫁消費者的壓力持續；<b>跌意味著</b>成本端真正鬆動。同比 +5.04% 偏高，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= 就業 ================= -->
+      <section class="panel" id="panel-jobs" role="tabpanel">
+        <div class="sec-head">
+          <h2>就業</h2>
+          <p>美聯儲的第二條主線：就業越穩、工資越熱，減息的迫切性越低。時間均為台灣時間。</p>
+        </div>
+        <div class="cards">
+
+          <article class="card">
+            <div class="card-top">
+              <h3>非農就業新增<span class="code">FRED · PAYEMS（每月變化值）</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">+16.5<small> 萬人</small></span>
+              <span class="sub">單月新增</span>
+              <span class="pill bad"><span class="dot"></span>利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無確切數字（實際高於預期）</span></div>
+              <div class="row"><span>前值（上月新增）</span><span>+6.0 萬人</span></div>
+              <div class="row"><span>就業總人數</span><span>159,293 千人</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="25.0" x2="260" y2="25.0"/><polyline class="trend" points="10.0,15.1 20.4,7.5 30.9,28.5 41.3,21.9 51.7,20.0 62.2,17.0 72.6,24.0 83.0,26.5 93.5,20.3 103.9,30.2 114.3,19.4 124.8,35.3 135.2,22.0 145.7,26.2 156.1,13.2 166.5,36.5 177.0,9.2 187.4,14.1 197.8,20.3 208.3,22.7 218.7,25.7 229.1,11.3 239.6,20.6 250.0,12.8"/><circle class="pt-last" cx="250.0" cy="12.8" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 每月新增人數</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-11 至 2026-10，共 24 點）· 期間最低 -15.6 萬人 · 最高 23.7 萬人。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 4 日（五）21:30（11 月數據）★</span>
+              <span class="cd" data-countdown="2026-12-04T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>上個月全美新增了多少份非農業工作，每月市場最緊張的數字之一。</p>
+              <p><b>升（高於預期）意味著</b>經濟和需求仍然強，美聯儲無需急於減息，加息周期下偏利空；<b>明顯跌甚至轉負意味著</b>衰退風險升溫，短線同樣利空、之後才可能因減息預期轉利多。今次高於預期，判利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>失業率<span class="code">FRED · UNRATE</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">4.1<small>%</small></span>
+              <span class="sub">按月下跌 0.1 個百分點</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無預期</span></div>
+              <div class="row"><span>前值</span><span>4.2%</span></div>
+              <div class="row"><span>變動</span><span>−0.1 個百分點</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><polyline class="trend" points="10.0,30.7 20.4,24.9 30.9,30.7 41.3,36.5 51.7,24.9 62.2,24.9 72.6,24.9 83.0,19.1 93.5,30.7 103.9,19.1 114.3,19.1 124.8,13.3 135.2,7.5 145.7,13.3 156.1,19.1 166.5,13.3 177.0,19.1 187.4,19.1 197.8,19.1 208.3,24.9 218.7,30.7 229.1,30.7 239.6,24.9 250.0,30.7"/><circle class="pt-last" cx="250.0" cy="30.7" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 失業率 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-10 至 2026-10，共 24 點）· 期間最低 4.00% · 最高 4.50%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 4 日（五）21:30（11 月數據）★</span>
+              <span class="cd" data-countdown="2026-12-04T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>想找工作的人裡面，有幾成還未找到。</p>
+              <p><b>跌意味著</b>勞動市場更緊、工資壓力更大，在加息周期裡反而偏利空；<b>急升意味著</b>衰退訊號，是另一種利空。今次回落至 4.1%，代表就業仍然穩固，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>平均時薪<span class="code">FRED · CES0500000003</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">$38.00</span>
+              <span class="sub">平均每小時工資</span>
+              <span class="pill mid"><span class="dot"></span>中性</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無預期</span></div>
+              <div class="row"><span>前值</span><span>$37.86</span></div>
+              <div class="row"><span>環比</span><span>+0.37%</span></div>
+              <div class="row"><span>同比</span><span>+3.12%</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="36.5" x2="260" y2="36.5"/><polyline class="trend" points="10.0,7.7 20.4,8.4 30.9,9.1 41.3,8.2 51.7,7.5 62.2,9.6 72.6,9.1 83.0,9.9 93.5,9.2 103.9,9.1 114.3,10.0 124.8,9.5 135.2,9.4 145.7,10.8 156.1,11.3 166.5,11.0 177.0,12.9 187.4,11.9 197.8,13.5 208.3,13.2 218.7,14.4 229.1,15.1 239.6,14.7 250.0,15.0"/><circle class="pt-last" cx="250.0" cy="15.0" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 同比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-11 至 2026-10，共 24 點）· 期間最低 +3.11% · 最高 +4.21%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 4 日（五）21:30（隨非農一併公布）</span>
+              <span class="cd" data-countdown="2026-12-04T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>上班族的平均時薪，工資升得快會推高服務業通脹，是美聯儲盯緊的「工資—物價螺旋」指標。</p>
+              <p><b>升太快意味著</b>通脹難落、偏利空；<b>升幅放緩意味著</b>工資壓力緩和、偏利多。同比 +3.12% 屬溫和水平，未有加速跡象，判中性。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>初請失業金人數<span class="code">FRED · ICSA · 每周公布</span></h3>
+              <span class="period">截至 2026 年 11 月 14 日當周</span>
+            </div>
+            <div class="latest">
+              <span class="val">20.3<small> 萬人</small></span>
+              <span class="sub">按周增加 1 千人</span>
+              <span class="pill good"><span class="dot"></span>偏利多</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（上一周）</span><span>20.2 萬人（上修）</span></div>
+              <div class="row"><span>變動</span><span>+0.1 萬人</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><polyline class="trend" points="10.0,24.7 20.4,24.7 30.9,9.1 41.3,20.4 51.7,10.2 62.2,7.5 72.6,14.5 83.0,20.9 93.5,11.8 103.9,17.7 114.3,19.8 124.8,22.5 135.2,29.5 145.7,15.0 156.1,23.6 166.5,29.5 177.0,36.5 187.4,17.7 197.8,22.0 208.3,32.2 218.7,27.4 229.1,31.7 239.6,36.0 250.0,29.5"/><circle class="pt-last" cx="250.0" cy="29.5" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 每月取一個點（萬人）</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-12 至 2026-11，共 24 點）· 期間最低 19.0 萬人 · 最高 24.4 萬人。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：11 月 25 日（三）21:30（感恩節週提前一天，與 PCE／GDP 同時段；統計截至 11 月 21 日當周）</span>
+              <span class="cd" data-countdown="2026-11-25T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>過去一周新失業、首次申請救濟金的人數，是最快的就業溫度計。</p>
+              <p><b>升意味著</b>裁員增加、就業轉弱——若只是小幅回升且水平仍低，市場反而樂見溫和降溫；<b>持續急升意味著</b>衰退風險。現水平 20.3 萬仍屬低位，判偏利多。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（勞工部數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>JOLTS 職位空缺<span class="code">FRED · JTSJOL</span></h3>
+              <span class="period">2026 年 9 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">752.3<small> 萬個</small></span>
+              <span class="sub">按月增加 33.3 萬個</span>
+              <span class="pill bad"><span class="dot"></span>利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無預期</span></div>
+              <div class="row"><span>前值</span><span>719.0 萬個</span></div>
+              <div class="row"><span>變動</span><span>+33.3 萬個</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><polyline class="trend" points="10.0,13.3 20.4,8.0 30.9,15.6 41.3,11.8 51.7,17.1 62.2,25.2 72.6,21.1 83.0,15.2 93.5,18.2 103.9,21.4 114.3,26.2 124.8,19.2 135.2,19.1 145.7,28.2 156.1,36.5 166.5,17.2 177.0,26.1 187.4,27.1 197.8,7.5 208.3,8.8 218.7,18.8 229.1,14.5 239.6,18.6 250.0,9.2"/><circle class="pt-last" cx="250.0" cy="9.2" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 空缺數（萬個）</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-10 至 2026-09，共 24 點）· 期間最低 655.0 萬個 · 最高 758.5 萬個。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 1 日（二）23:00（10 月數據）</span>
+              <span class="cd" data-countdown="2026-12-01T23:00:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>全美企業還沒招到人的職位空缺總數，反映企業請人意欲。</p>
+              <p><b>升意味著</b>企業搶才、就業需求旺，工資和通脹壓力難消，偏利空；<b>跌意味著</b>需求降溫，若跌得太急則要留意衰退。今次明顯回升，判利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BLS 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= 增長·市場 ================= -->
+      <section class="panel" id="panel-growth" role="tabpanel">
+        <div class="sec-head">
+          <h2>增長與市場</h2>
+          <p>經濟增長、消費、製造與服務業景氣，加上直接影響估值的美債收益率與美元。時間均為台灣時間。</p>
+        </div>
+        <div class="cards">
+
+          <article class="card">
+            <div class="card-top">
+              <h3>GDP 季度增長<span class="code">FRED · A191RL1Q225SBEA · 年化季率</span></h3>
+              <span class="period">2026 年第三季 · 初值</span>
+            </div>
+            <div class="latest">
+              <span class="val">+3.4<small>%</small></span>
+              <span class="sub">季度年化增速</span>
+              <span class="pill mid"><span class="dot"></span>中性</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（上一季）</span><span>+2.2%</span></div>
+              <div class="row"><span>版本</span><span>初值，之後有修正值與終值</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="36.5" x2="260" y2="36.5"/><polyline class="trend" points="10.0,19.1 44.3,35.8 78.6,7.5 112.9,8.2 147.1,35.1 181.4,18.4 215.7,20.5 250.0,11.8"/><circle class="pt-last" cx="250.0" cy="11.8" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 近 8 個季度年化 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-10 至 2026-07，共 8 點）· 期間最低 +0.10% · 最高 +4.00%。</div>
+            </div>
+            <div class="next-rel">
+              <span>修正值：11 月 25 日（三）21:30 · 終值：12 月 23 日（三）21:30</span>
+              <span class="cd" data-countdown="2026-11-25T21:30:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>美國經濟整體產出一季增長多少，換算成年率。</p>
+              <p><b>升意味著</b>經濟強、企業盈利有支撐，但太強會減少減息空間；<b>跌至負數意味著</b>技術性衰退擔憂。+3.4% 屬強勁但未至過熱失控，兩面因素抵銷，判中性。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（BEA 數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>零售銷售<span class="code">FRED · RSAFS</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">748,220<small> 百萬美元</small></span>
+              <span class="sub">零售貿易銷售總額</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>暫無預期</span></div>
+              <div class="row"><span>前值（總額）</span><span>746,637 百萬美元（9 月上修值）</span></div>
+              <div class="row"><span>環比</span><span>+0.21%</span></div>
+              <div class="row"><span>同比</span><span>+6.82%</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><line class="zero-line" x1="0" y1="23.1" x2="260" y2="23.1"/><polyline class="trend" points="10.0,17.7 20.4,14.7 30.9,29.5 41.3,27.5 51.7,8.0 62.2,22.1 72.6,36.5 83.0,14.3 93.5,14.4 103.9,20.2 114.3,22.8 124.8,23.3 135.2,16.3 145.7,22.0 156.1,28.9 166.5,14.9 177.0,7.5 187.4,17.5 197.8,13.3 208.3,21.1 218.7,26.9 229.1,9.4 239.6,15.3 250.0,21.1"/><circle class="pt-last" cx="250.0" cy="21.1" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 環比 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-11 至 2026-10，共 24 點）· 期間最低 -1.43% · 最高 +1.66%。</div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：月中公布，無固定日期（以官方日曆為準，不在此估算）</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>消費者實際花了多少錢——消費佔美國 GDP 約七成，是增長的引擎。</p>
+              <p><b>升意味著</b>需求旺盛、增長有力，但同時令通脹難降、偏利空利率路徑；<b>跌意味著</b>消費轉弱，要留意衰退訊號。今次環比 +0.21% 升幅較上月放緩，但同比仍達 +6.82%，消費動能未明顯轉弱，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（普查局數據）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>ISM 製造業 PMI<span class="code">ISM 官方公布 · 不在 FRED</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">55.5</span>
+              <span class="sub">50 以上＝擴張</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>54.6</span></div>
+              <div class="row"><span>前值</span><span>54.5</span></div>
+              <div class="row"><span>物價指數</span><span>75.2（成本壓力高）</span></div>
+            </div>
+            <div class="spark">
+              <div class="spark-note" style="margin-top:0">此卡不設走勢圖：ISM PMI 不在 FRED 上，官方不提供可直接繪圖的歷史序列，本頁只採用 ISM 公布的最新值、前值與預期，不自行拼湊走勢。</div>
+              <div class="spark-cap"><span>近 24 個月</span><span>無圖 · 原因如上行</span></div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 1 日（二）23:00（每月第一個工作日）</span>
+              <span class="cd" data-countdown="2026-12-01T23:00:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>問卷調查工廠經理：訂單、生產、庫存是變好還是變差，50 是榮枯線。</p>
+              <p><b>升意味著</b>製造業景氣擴張，但今次同時物價指數高達 75.2，代表成本通脹壓力大，偏利空；<b>跌穿 50 意味著</b>製造業收縮。55.5 高於預期 54.6，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：ISM 官方報告</span><span>快照：2026-11-15</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>ISM 服務業 PMI<span class="code">ISM 官方公布 · 不在 FRED</span></h3>
+              <span class="period">2026 年 10 月</span>
+            </div>
+            <div class="latest">
+              <span class="val">54.5</span>
+              <span class="sub">50 以上＝擴張</span>
+              <span class="pill good"><span class="dot"></span>偏利多</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>54.8</span></div>
+              <div class="row"><span>前值</span><span>54.9</span></div>
+              <div class="row"><span>物價指數</span><span>73.0（連續 28 個月高於 50）</span></div>
+            </div>
+            <div class="spark">
+              <div class="spark-note" style="margin-top:0">此卡不設走勢圖：ISM PMI 不在 FRED 上，官方不提供可直接繪圖的歷史序列，本頁只採用 ISM 公布的最新值、前值與預期，不自行拼湊走勢。</div>
+              <div class="spark-cap"><span>近 24 個月</span><span>無圖 · 原因如上行</span></div>
+            </div>
+            <div class="next-rel">
+              <span>下次公布：12 月 3 日（四）23:00（每月第三個工作日）</span>
+              <span class="cd" data-countdown="2026-12-03T23:00:00+08:00">—</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>同樣的問卷，問的是服務業——佔美國經濟比重比製造業大得多。</p>
+              <p><b>升意味著</b>服務需求旺，但服務通脹最黏，要配合物價指數一起看；<b>跌意味著</b>景氣降溫。今次 54.5 略低於預期 54.8，是溫和降溫，判偏利多；惟物價指數 73.0 仍高，是保留。</p>
+            </div>
+            <div class="card-foot"><span>來源：ISM 官方報告</span><span>快照：2026-11-15</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>2 年期美債收益率<span class="code">FRED · DGS2</span></h3>
+              <span class="period">2026 年 11 月 18 日</span>
+            </div>
+            <div class="latest">
+              <span class="val">4.80<small>%</small></span>
+              <span class="sub">市場利率 · 每日</span>
+              <span class="pill bad"><span class="dot"></span>偏利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>不適用（市場價格）</span></div>
+              <div class="row"><span>前值（前一交易日）</span><span>4.80%</span></div>
+              <div class="row"><span>高於政策區間上限</span><span>+0.80 個百分點</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><polyline class="trend" points="10.0,19.7 20.4,20.3 30.9,24.7 41.3,26.6 51.7,32.3 62.2,26.6 72.6,29.9 83.0,25.7 93.5,32.5 103.9,32.3 114.3,32.3 124.8,34.8 135.2,34.8 145.7,33.8 156.1,36.5 166.5,28.6 177.0,26.8 187.4,24.9 197.8,21.8 208.3,19.1 218.7,17.9 229.1,7.5 239.6,13.7 250.0,9.0"/><circle class="pt-last" cx="250.0" cy="9.0" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 每月取月末值 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-12 至 2026-11，共 24 點）· 期間最低 3.38% · 最高 4.88%。</div>
+            </div>
+            <div class="next-rel">
+              <span>更新頻率：每個交易日（FRED 日度序列）</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>借錢給美國政府兩年的回報率，最貼近市場對政策利率的預期。</p>
+              <p><b>升意味著</b>市場認為利率會更高、維持更久，資金成本上升，偏利空成長股；<b>跌意味著</b>市場轉為預期減息。現處 4.80% 高位，反映加息定價，判偏利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（美聯儲 H.15）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>10 年期美債收益率<span class="code">FRED · DGS10</span></h3>
+              <span class="period">2026 年 11 月 18 日</span>
+            </div>
+            <div class="latest">
+              <span class="val">5.07<small>%</small></span>
+              <span class="sub">市場利率 · 每日</span>
+              <span class="pill bad"><span class="dot"></span>利空</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>不適用（市場價格）</span></div>
+              <div class="row"><span>前值（前一交易日）</span><span>5.10%</span></div>
+              <div class="row"><span>與 2 年期利差</span><span>+0.27 個百分點</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><polyline class="trend" points="10.0,23.1 20.4,23.1 30.9,30.6 41.3,30.8 51.7,32.1 62.2,26.8 72.6,30.6 83.0,27.7 93.5,30.8 103.9,32.3 114.3,33.4 124.8,35.4 135.2,31.9 145.7,30.1 156.1,36.5 166.5,29.3 177.0,27.1 187.4,26.0 197.8,26.2 208.3,19.4 218.7,19.4 229.1,7.5 239.6,15.2 250.0,12.3"/><circle class="pt-last" cx="250.0" cy="12.3" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 每月取月末值 %</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-12 至 2026-11，共 24 點）· 期間最低 3.97% · 最高 5.29%。</div>
+            </div>
+            <div class="next-rel">
+              <span>更新頻率：每個交易日（FRED 日度序列）</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>全球資產定價的錨：按揭、企業債、股票估值的折現率都跟它走。</p>
+              <p><b>升意味著</b>無風險利率更高，股票（尤其高估值成長股和比特幣等風險資產）相對吸引力下降；<b>跌意味著</b>估值壓力緩解。升穿 5% 是明確的緊縮訊號，判利空。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（美聯儲 H.15）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+          <article class="card">
+            <div class="card-top">
+              <h3>美元指數（FRED 廣義）<span class="code">FRED · DTWEXBGS · 並非 ICE 的 DXY</span></h3>
+              <span class="period">2026 年 11 月 13 日</span>
+            </div>
+            <div class="latest">
+              <span class="val">122.65</span>
+              <span class="sub">廣義貿易加權名義美元指數</span>
+              <span class="pill mid"><span class="dot"></span>中性</span>
+            </div>
+            <div class="meta-rows">
+              <div class="row"><span>預期</span><span>不適用（市場價格）</span></div>
+              <div class="row"><span>前值（前一日）</span><span>122.54</span></div>
+              <div class="row"><span>注意</span><span>此為美聯儲廣義指數，不是 DXY</span></div>
+            </div>
+            <div class="spark">
+              <svg viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true"><polyline class="trend" points="10.0,7.5 20.4,9.5 30.9,10.0 41.3,14.0 51.7,24.4 62.2,26.5 72.6,32.5 83.0,26.6 93.5,30.5 103.9,30.7 114.3,27.5 124.8,28.3 135.2,31.6 145.7,36.3 156.1,36.5 166.5,28.4 177.0,34.4 187.4,33.8 197.8,28.7 208.3,31.7 218.7,34.6 229.1,28.5 239.6,26.8 250.0,24.3"/><circle class="pt-last" cx="250.0" cy="24.3" r="3.5"/></svg>
+              <div class="spark-cap"><span>近 24 個月 · 每月取月末值</span><span>紅點＝最新一期</span></div>
+              <div class="spark-note">FRED 實際公布序列繪製（2024-12 至 2026-11，共 24 點）· 期間最低 117.82 · 最高 129.28。</div>
+            </div>
+            <div class="next-rel">
+              <span>更新頻率：每周（FRED 周度序列）</span>
+            </div>
+            <div class="explain">
+              <p><b>一句話：</b>美元對一籃子主要貨幣的強弱，按貿易額加權——留意它和你在新聞看到的 DXY 口徑不同。</p>
+              <p><b>升意味著</b>美元強、全球流動性偏緊，跨國企業海外盈利換回美元時縮水，對風險資產偏不利；<b>跌意味著</b>流動性環境放鬆。單一水平未見極端方向，判中性，看趨勢配合利率一起判斷。</p>
+            </div>
+            <div class="card-foot"><span>來源：FRED（美聯儲）</span><span>更新：2026-11-20</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= 日曆 ================= -->
+      <section class="panel" id="panel-calendar" role="tabpanel">
+        <div class="sec-head">
+          <h2>60 天完整日曆</h2>
+          <p>2026 年 11 月 17 日至 2027 年 1 月中，共 31 項事件（含 1 月 28 日 FOMC 前瞻）。全部為台灣時間：美國冬令時下，美東 08:30 ＝ 台灣 21:30，美東 10:00 ＝ 台灣 23:00，美聯儲決議美東 14:00 ＝ 台灣翌日 03:00。</p>
+        </div>
+
+        <p class="month-label">2026 年 11 月</p>
+        <ul class="cal-list">
+          <li><span class="d">11 月 19 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）<span class="note">最快就業溫度計；水平仍低是溫和降溫的好訊號。</span></span></li>
+          <li><span class="d">11 月 25 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>PCE 物價指數</b>（10 月）<span class="note">美聯儲最重視的通脹讀數，同日還有核心 PCE。</span></span></li>
+          <li><span class="d">11 月 25 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>核心 PCE</b>（10 月）<span class="note">對照 2% 目標的官方標尺，9 月同比 +3.12%。</span></span></li>
+          <li><span class="d">11 月 25 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>GDP 第三季修正值</b><span class="note">初值為年化 +3.4%，看有否上修或下修。</span></span></li>
+          <li><span class="d">11 月 25 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（截至 11 月 21 日當周）<span class="note">感恩節落在週四 11 月 26 日（聯邦假日），該周提前一天公布，與 PCE／GDP 同一時段。</span></span></li>
+          <li><span class="d">11 月 26 日<small>星期四</small></span><span class="t">03:00</span><span class="what"><b>美聯儲褐皮書</b><span class="note">12 個轄區經濟現況彙編，為 12 月議息鋪墊。</span></span></li>
+          <li><span class="d">11 月 28 日<small>星期六起</small></span><span class="t">—</span><span class="what"><b>美聯儲靜默期開始</b>（11 月 28 日 – 12 月 10 日）<span class="note">議息前官員不公開講話，市場只能靠數據定價。</span></span></li>
+        </ul>
+
+        <p class="month-label">2026 年 12 月</p>
+        <ul class="cal-list">
+          <li><span class="d">12 月 1 日<small>星期二</small></span><span class="t">23:00</span><span class="what"><b>JOLTS 職位空缺</b>（10 月）<span class="note">9 月回升至 752.3 萬，看需求是否續熱。</span></span></li>
+          <li><span class="d">12 月 1 日<small>星期二</small></span><span class="t">23:00</span><span class="what"><b>ISM 製造業 PMI</b>（11 月）<span class="note">同日公布，留意物價指數（10 月為 75.2）。</span></span></li>
+          <li><span class="d">12 月 3 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+          <li><span class="d">12 月 3 日<small>星期四</small></span><span class="t">23:00</span><span class="what"><b>ISM 服務業 PMI</b>（11 月）<span class="note">10 月為 54.5，物價指數連續 28 個月高於 50。</span></span></li>
+          <li><span class="d">12 月 4 日<small>星期五</small></span><span class="t">21:30</span><span class="what"><b>非農就業 ＋ 失業率 ＋ 平均時薪</b>（11 月）<span class="star"> ★</span><span class="note">議息前最後一份就業報告，直接影響 12 月幅度定價。</span></span></li>
+          <li><span class="d">12 月 10 日<small>星期四</small></span><span class="t">03:00</span><span class="what"><b>FOMC 利率決議 ＋ 點陣圖 ＋ 經濟預測</b><span class="star"> ★★★</span><span class="note">FedWatch 定價：加息概率 100%（+25bp 88.5% / +50bp 11.5%）。</span></span></li>
+          <li><span class="d">12 月 10 日<small>星期四</small></span><span class="t">03:30</span><span class="what"><b>美聯儲主席新聞發布會</b><span class="note">主席 Kevin Warsh 的措辭往往比決議本身更影響市場。</span></span></li>
+          <li><span class="d">12 月 10 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+          <li><span class="d">12 月 10 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>CPI</b>（11 月）<span class="star"> ★</span><span class="note">注意：這次 CPI 在議息之後才公布，影響的是 1 月會議預期。</span></span></li>
+          <li><span class="d">12 月 10 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>核心 CPI</b>（11 月）<span class="star"> ★</span><span class="note">與 CPI 同時公布，10 月環比 +0.30% 高於預期。</span></span></li>
+          <li><span class="d">12 月 15 日<small>星期二</small></span><span class="t">21:30</span><span class="what"><b>PPI</b>（11 月）<span class="note">上游物價，10 月同比 +6.52%。</span></span></li>
+          <li><span class="d">12 月 15 日<small>星期二</small></span><span class="t">21:30</span><span class="what"><b>核心 PPI</b>（11 月）<span class="note">FRED PPIFES 口徑：最終需求扣食品和能源。</span></span></li>
+          <li><span class="d">12 月 17 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+          <li><span class="d">12 月 23 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>PCE ＋ 核心 PCE</b>（11 月）<span class="star"> ★</span><span class="note">聖誕前最後一份通脹重頭數據。</span></span></li>
+          <li><span class="d">12 月 23 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>GDP 第三季終值</b><span class="star"> ★</span><span class="note">與 PCE 同日公布。</span></span></li>
+          <li><span class="d">12 月 24 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+          <li><span class="d">12 月 31 日<small>星期四</small></span><span class="t">03:00</span><span class="what"><b>FOMC 會議紀要</b>（預計）<span class="note">一般於會後約三周公布，確實日期以美聯儲官網為準。</span></span></li>
+          <li><span class="d">12 月 31 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+        </ul>
+
+        <p class="month-label">2027 年 1 月</p>
+        <ul class="cal-list">
+          <li><span class="d">1 月 7 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+          <li><span class="d">1 月 8 日<small>星期五</small></span><span class="t">21:30</span><span class="what"><b>非農就業 ＋ 失業率</b>（12 月）<span class="star"> ★</span><span class="note">2027 年第一份就業報告。</span></span></li>
+          <li><span class="d">1 月 13 日<small>星期三</small></span><span class="t">21:30</span><span class="what"><b>CPI ＋ 核心 CPI</b>（12 月）<span class="star"> ★</span><span class="note">1 月議息前最重要的通脹讀數。</span></span></li>
+          <li><span class="d">1 月 14 日<small>星期四</small></span><span class="t">03:00</span><span class="what"><b>美聯儲褐皮書</b><span class="note">為 1 月 28 日議息鋪墊。</span></span></li>
+          <li><span class="d">1 月 14 日<small>星期四</small></span><span class="t">21:30</span><span class="what"><b>初請失業金人數</b>（每周）</span></li>
+          <li><span class="d">1 月 28 日<small>星期四</small></span><span class="t">03:00</span><span class="what"><b>FOMC 利率決議</b><span class="star"> ★★★</span><span class="note">60 天窗口之後的下一場議息，先列入前瞻。</span></span></li>
+        </ul>
+
+        <h3 class="subhead">日曆與數據來源</h3>
+        <div class="block">
+          <div class="src-links">
+            <a href="https://fred.stlouisfed.org" target="_blank" rel="noopener">FRED 聖路易斯聯儲數據庫</a>
+            <a href="https://www.bls.gov/schedule/news_release/" target="_blank" rel="noopener">BLS 勞工統計局發布日曆</a>
+            <a href="https://www.bea.gov/news/schedule" target="_blank" rel="noopener">BEA 經濟分析局日曆</a>
+            <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener">美聯儲 FOMC 會議日曆</a>
+            <a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" rel="noopener">CME FedWatch 加息概率</a>
+            <a href="https://www.ismworld.org" target="_blank" rel="noopener">ISM 供應管理協會</a>
+          </div>
+          <p class="small muted" style="margin-top:8px">市場預期值一般取自 Investing.com 財經日曆；讀不到的預期一律顯示「暫無預期」，不作估算。零售銷售為月中公布、無固定日期，故不列入日曆日期欄。</p>
+        </div>
+      </section>
+
+      <footer>
+        <p>資料來源：FRED（聖路易斯聯儲）、ISM、CME FedWatch、BLS、BEA、美聯儲。FRED 數據已於 2026 年 11 月 20 日透過官方 API 更新（其後每日台灣時間 08:00 及 ★ 數據公布後自動刷新本頁快照）；ISM 與 CME FedWatch 不在 FRED，沿用 2026 年 11 月 14–15 日快照並標明原日期；拿不到的數據顯示「暫無資料」、拿不到的預期顯示「暫無預期」，本頁不估算、不補造任何數字。</p>
+        <p>紅綠判斷是按「數據對利率路徑的影響」作出的解讀，不構成投資建議。</p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        /* 主題：首次開啟跟隨系統深淺設定，之後可手動切換（只記在本次開啟內） */
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = prefersDark ? 'dark' : 'light';
+        var label = document.getElementById('themeLabel');
+        function applyTheme() {
+          root.setAttribute('data-theme', theme);
+          label.textContent = theme === 'dark' ? '淺色' : '深色';
+        }
+        applyTheme();
+        document.getElementById('themeToggle').addEventListener('click', function () {
+          theme = theme === 'dark' ? 'light' : 'dark';
+          applyTheme();
+        });
+
+        /* 分區標籤：一次只顯示一個分區 */
+        var buttons = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+        var panels = {};
+        buttons.forEach(function (b) { panels[b.getAttribute('data-tab')] = document.getElementById('panel-' + b.getAttribute('data-tab')); });
+        buttons.forEach(function (b) {
+          b.addEventListener('click', function () {
+            buttons.forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
+            Object.keys(panels).forEach(function (k) { if (panels[k]) panels[k].classList.remove('active'); });
+            var p = panels[b.getAttribute('data-tab')];
+            if (p) p.classList.add('active');
+            window.scrollTo(0, 0);
+          });
+        });
+
+        /* 倒計時：每秒更新頁面所有倒計時（包括暫時隱藏的分區），切換標籤不會停 */
+        var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-countdown]'));
+        var targets = nodes.map(function (n) { return { el: n, t: new Date(n.getAttribute('data-countdown')).getTime() }; });
+        function fmt(ms) {
+          if (ms <= 0) return '已公布';
+          var s = Math.floor(ms / 1000);
+          var d = Math.floor(s / 86400); s -= d * 86400;
+          var h = Math.floor(s / 3600); s -= h * 3600;
+          var m = Math.floor(s / 60); s -= m * 60;
+          var parts = [];
+          if (d > 0) parts.push(d + ' 天');
+          parts.push(h + ' 小時');
+          parts.push(m + ' 分');
+          if (d === 0) parts.push(s + ' 秒');
+          return '還有 ' + parts.join(' ');
+        }
+        function tick() {
+          var now = Date.now();
+          targets.forEach(function (x) { x.el.textContent = fmt(x.t - now); });
+        }
+        tick();
+        setInterval(tick, 1000);
+      })();
+    </script>
+  </body>
+</html>
